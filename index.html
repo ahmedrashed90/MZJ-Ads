@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MZJ Ads — لوحة تحليلات الإعلانات</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- XLSX for Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root{
+      --brown:#3e2420;
+      --beige:#bc8f74;
+      --cream:#fff8ef;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --card:#ffffff;
+      --radius:18px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Tajawal",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at top left,#fef3c7,#f5ebe2 40%,#ffffff 80%);
+      color:var(--text);
+    }
+    .app-shell{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(62,36,32,0.98);
+      backdrop-filter:blur(14px);
+      color:#f9fafb;
+      padding:10px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow:0 10px 30px rgba(15,23,42,0.55);
+    }
+    .topbar-left{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .topbar-title{
+      font-size:19px;
+      font-weight:800;
+      letter-spacing:.02em;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .topbar-tag{
+      font-size:11px;
+      padding:2px 8px;
+      border-radius:999px;
+      background:#facc15;
+      color:#1f2937;
+      font-weight:700;
+    }
+    .topbar-sub{
+      font-size:12px;
+      opacity:.9;
+    }
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:11px;
+    }
+    .chip{
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(248,250,252,0.35);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:default;
+    }
+    .chip-dot{
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:#22c55e;
+    }
+    .main{
+      flex:1;
+      max-width:1320px;
+      margin:0 auto;
+      width:100%;
+      padding:18px 18px 20px;
+    }
+    /* Filters row */
+    .filters-shell{
+      background:rgba(255,255,255,0.95);
+      border-radius:var(--radius);
+      padding:12px 14px;
+      border:1px solid rgba(226,232,240,0.9);
+      box-shadow:0 18px 45px rgba(15,23,42,0.12);
+      margin-bottom:16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .filters-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:flex-end;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      font-size:13px;
+      min-width:160px;
+    }
+    .field label{
+      font-weight:600;
+      color:var(--brown);
+    }
+    .field small{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .field input[type="month"], .field select{
+      padding:7px 11px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#f9fafb;
+      font-family:inherit;
+      font-size:13px;
+      outline:none;
+      transition:.12s ease border-color,.12s ease box-shadow,.12s ease background;
+    }
+    .field input[type="month"]:focus,
+    .field select:focus{
+      border-color:var(--beige);
+      box-shadow:0 0 0 1px rgba(188,143,116,0.5);
+      background:#ffffff;
+    }
+    .btn{
+      padding:8px 16px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:13px;
+      font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:.12s ease all;
+    }
+    .btn-primary{
+      background:var(--brown);
+      color:#ffffff;
+      box-shadow:0 12px 26px rgba(62,36,32,0.55);
+    }
+    .btn-primary:not(:disabled):hover{
+      background:#2e1714;
+      transform:translateY(-1px);
+      box-shadow:0 18px 34px rgba(15,23,42,0.6);
+    }
+    .btn-primary:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      box-shadow:none;
+      transform:none;
+    }
+    .btn-ghost{
+      background:transparent;
+      color:var(--brown);
+      border:1px dashed rgba(148,163,184,0.9);
+    }
+    .btn-ghost:hover{
+      border-style:solid;
+      background:#f9fafb;
+    }
+    .filters-footer{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:space-between;
+      align-items:center;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .status-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:11px;
+    }
+    .status-ok{
+      background:#ecfdf3;
+      color:#166534;
+    }
+    .status-bad{
+      background:#fef2f2;
+      color:#991b1b;
+    }
+    .status-dot{
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:currentColor;
+    }
+
+    /* KPI cards */
+    .grid-kpi{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:16px;
+    }
+    @media(max-width:1024px){.grid-kpi{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media(max-width:640px){.grid-kpi{grid-template-columns:1fr;}}
+
+    .kpi-card{
+      position:relative;
+      overflow:hidden;
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:10px 12px;
+      border:1px solid rgba(226,232,240,0.95);
+      box-shadow:0 14px 32px rgba(15,23,42,0.12);
+    }
+    .kpi-card::before{
+      content:"";
+      position:absolute;
+      inset:auto -40px 0;
+      height:42%;
+      background:linear-gradient(135deg,rgba(188,143,116,0.18),rgba(59,130,246,0.03));
+      opacity:0.75;
+      pointer-events:none;
+    }
+    .kpi-label{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+    .kpi-main-row{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:6px;
+      margin-bottom:2px;
+    }
+    .kpi-value{
+      font-size:19px;
+      font-weight:800;
+      color:var(--brown);
+    }
+    .kpi-delta{
+      font-size:11px;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:3px;
+    }
+    .kpi-delta.up{color:#16a34a;}
+    .kpi-delta.down{color:#dc2626;}
+    .kpi-delta.neutral{color:var(--muted);}
+    .kpi-sub{
+      font-size:11px;
+      color:var(--muted);
+    }
+
+    /* Platform mini-cards */
+    .platform-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:16px;
+    }
+    @media(max-width:1024px){.platform-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media(max-width:640px){.platform-grid{grid-template-columns:1fr;}}
+
+    .platform-card{
+      background:rgba(255,255,255,0.96);
+      border-radius:14px;
+      padding:8px 10px;
+      border:1px solid rgba(226,232,240,0.9);
+      box-shadow:0 10px 22px rgba(15,23,42,0.08);
+      font-size:11px;
+    }
+    .platform-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:2px;
+    }
+    .platform-name{
+      font-weight:700;
+      color:var(--brown);
+      font-size:12px;
+    }
+    .platform-chip{
+      padding:2px 7px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:600;
+    }
+    .platform-meta{background:#eff6ff;color:#1d4ed8;}
+    .platform-tiktok{background:#fce7f3;color:#db2777;}
+    .platform-snap{background:#fef9c3;color:#92400e;}
+    .platform-other{background:#e5e7eb;color:#111827;}
+    .platform-body{
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+    }
+    .platform-metric-label{color:var(--muted);font-size:10px;}
+    .platform-metric-value{font-weight:700;font-size:12px;}
+
+    /* Layout main */
+    .layout-main{
+      display:grid;
+      grid-template-columns:minmax(0,2.2fr) minmax(0,1.5fr);
+      gap:14px;
+    }
+    @media(max-width:1024px){.layout-main{grid-template-columns:1fr;}}
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:12px 14px 10px;
+      border:1px solid rgba(226,232,240,0.95);
+      box-shadow:0 14px 32px rgba(15,23,42,0.12);
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+      gap:8px;
+    }
+    .card-title{
+      font-size:14px;
+      font-weight:700;
+      color:var(--brown);
+    }
+    .card-sub{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .pill-tabs{
+      display:inline-flex;
+      border-radius:999px;
+      background:#f1f5f9;
+      padding:2px;
+      border:1px solid #e2e8f0;
+      font-size:11px;
+      gap:2px;
+    }
+    .pill-tab{
+      border-radius:999px;
+      padding:4px 9px;
+      cursor:pointer;
+      border:none;
+      background:transparent;
+      color:#64748b;
+      font-weight:600;
+    }
+    .pill-tab.active{
+      background:#ffffff;
+      color:#0f172a;
+      box-shadow:0 1px 3px rgba(15,23,42,0.28);
+    }
+    canvas{max-width:100%;}
+
+    /* Table */
+    .table-wrapper{
+      max-height:360px;
+      overflow:auto;
+      margin-top:4px;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+      min-width:740px;
+    }
+    th,td{
+      padding:6px 8px;
+      border-bottom:1px solid #e2e8f0;
+      white-space:nowrap;
+      text-align:right;
+    }
+    th{
+      background:#f8fafc;
+      font-weight:700;
+      color:#475569;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    tr:hover td{
+      background:#f1f5f9;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      padding:2px 7px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:600;
+    }
+    .badge-green{background:#ecfdf3;color:#166534;}
+    .badge-red{background:#fef2f2;color:#b91c1c;}
+    .badge-amber{background:#fffbeb;color:#92400e;}
+
+    .empty-state{
+      padding:18px 12px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    .footer{
+      padding:10px 16px 16px;
+      font-size:11px;
+      color:#94a3b8;
+      text-align:center;
+    }
+
+    /* Print (for PDF export via browser) */
+    @media print{
+      .topbar, .filters-shell, .footer{display:none!important;}
+      body{background:#ffffff;}
+      .main{padding:0;margin:0;}
+      .card, .kpi-card, .platform-card{
+        box-shadow:none!important;
+        border-color:#cbd5e1!important;
+      }
+    }
+  </style>
+
+<style>
+
+.mzj-topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:#3e2420;
+  color:#f9fafb;
+  box-shadow:0 10px 30px rgba(15,23,42,0.5);
+}
+.mzj-topbar-inner{
+  max-width:1320px;
+  margin:0 auto;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.mzj-topbar-left{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.mzj-topbar-title{
+  font-weight:800;
+  font-size:15px;
+}
+.mzj-topbar-sub{
+  font-size:11px;
+  opacity:.9;
+}
+.mzj-topbar-nav{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.mzj-topbar-link{
+  font-size:12px;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid rgba(248,250,252,0.45);
+  color:#f9fafb;
+  text-decoration:none;
+  transition:.15s ease all;
+}
+.mzj-topbar-link:hover{
+  background:#facc15;
+  color:#1f2937;
+  border-color:#facc15;
+}
+@media(max-width:640px){
+  .mzj-topbar-inner{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .mzj-topbar-nav{
+    width:100%;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+}
+
+</style>
+</head>
+<body>
+
+  <div class="mzj-topbar">
+    <div class="mzj-topbar-inner">
+      <div class="mzj-topbar-left">
+        <span class="mzj-topbar-title">MZJ Ads Workspace</span>
+        <span class="mzj-topbar-sub">منصة واحدة لرفع المنصات والرسائل وتحليل النتائج</span>
+      </div>
+      <nav class="mzj-topbar-nav">
+        <a href="mzj-dashboard-linked.html" class="mzj-topbar-link">الداشبورد</a>
+        <a href="mzj-platforms-linked.html" class="mzj-topbar-link">رفع المنصات</a>
+        <a href="mzj-messages-linked.html" class="mzj-topbar-link">رفع الرسائل</a>
+      </nav>
+    </div>
+  </div>
+
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          MZJ Ads — Dashboard
+          <span class="topbar-tag">v3</span>
+        </div>
+        <div class="topbar-sub">
+          تحليلات مجمّعة للمنصات + حملات الرسائل — مع مقارنة شهرين وتصدير PDF / Excel
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="chip">
+          <span class="chip-dot"></span>
+          <span>متصل بـ Firebase: mzj-ads</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- Filters -->
+      <section class="filters-shell">
+        <div class="filters-row">
+          <div class="field">
+            <label for="monthMain">الشهر الأساسي</label>
+            <input type="month" id="monthMain"/>
+            <small>ده الشهر اللي الرسوم والجدول مبنيين عليه.</small>
+          </div>
+
+          <div class="field">
+            <label for="monthCompare">شهر المقارنة (اختياري)</label>
+            <input type="month" id="monthCompare"/>
+            <small>يظهر نسبة الزيادة/النقص في الـ KPIs.</small>
+          </div>
+
+          <div class="field">
+            <label for="sourceFilter">مصدر البيانات</label>
+            <select id="sourceFilter">
+              <option value="all">الكل (منصات + رسائل)</option>
+              <option value="platforms">المنصات فقط (platforms_raw)</option>
+              <option value="messages">الرسائل فقط (messages_raw)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="groupBySelect">تجميع حسب</label>
+            <select id="groupBySelect">
+              <option value="CampaignName">الحملة</option>
+              <option value="AdSetName">مجموعة الإعلانات</option>
+              <option value="AdName">الإعلان</option>
+              <option value="Platform">المنصة</option>
+            </select>
+          </div>
+
+          <button id="loadBtn" class="btn btn-primary">
+            تحميل بيانات الشهر
+          </button>
+        </div>
+
+        <div class="filters-footer">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="exportExcelBtn" class="btn btn-ghost">تصدير Excel (الجدول الحالي)</button>
+            <button id="exportPdfBtn" class="btn btn-ghost">تصدير PDF (استخدم طباعة المتصفح)</button>
+          </div>
+          <div id="statusPill" class="status-pill status-ok" style="display:none;">
+            <span class="status-dot"></span>
+            <span id="statusText">جاهز</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPIs -->
+      <section class="grid-kpi">
+        <article class="kpi-card">
+          <div class="kpi-label">إجمالي الإنفاق</div>
+          <div class="kpi-main-row">
+            <div id="kpiSpend" class="kpi-value">-</div>
+            <div id="deltaSpend" class="kpi-delta neutral"></div>
+          </div>
+          <div class="kpi-sub">إجمالي الإنفاق من كل المنصات / الرسائل (ر.س)</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label">إجمالي مرات الظهور (Impressions)</div>
+          <div class="kpi-main-row">
+            <div id="kpiImpr" class="kpi-value">-</div>
+            <div id="deltaImpr" class="kpi-delta neutral"></div>
+          </div>
+          <div class="kpi-sub">إجمالي مرات الظهور في الشهر المختار</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label">CTR / Conversion%</div>
+          <div class="kpi-main-row">
+            <div id="kpiCtr" class="kpi-value">-</div>
+            <div id="deltaCtr" class="kpi-delta neutral"></div>
+          </div>
+          <div class="kpi-sub">CTR للحملات العادية — Conversion Rate لحملات الرسائل</div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label">CPC / CPL</div>
+          <div class="kpi-main-row">
+            <div id="kpiCosts" class="kpi-value">-</div>
+            <div id="deltaCosts" class="kpi-delta neutral"></div>
+          </div>
+          <div class="kpi-sub">متوسط تكلفة النقرة / المحادثة / النتيجة</div>
+        </article>
+      </section>
+
+      <!-- Platform mini cards -->
+      <section class="card" style="margin-bottom:14px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">ملخص سريع لكل منصة</div>
+            <div class="card-sub">Spend + Leads لكل منصة من الداتا الحالية (الفلتر مطبق).</div>
+          </div>
+        </div>
+        <div id="platformCards" class="platform-grid">
+          <div class="empty-state">سيتم توليد كروت المنصات بعد تحميل بيانات الشهر.</div>
+        </div>
+      </section>
+
+      <!-- Main layout: charts + table -->
+      <section class="layout-main">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top 10 حسب الإنفاق</div>
+              <div id="chartMainTitle" class="card-sub">حسب الحملة</div>
+            </div>
+            <div class="pill-tabs" id="groupTabs">
+              <button class="pill-tab active" data-group="CampaignName">حملات</button>
+              <button class="pill-tab" data-group="AdSetName">Ad Sets</button>
+              <button class="pill-tab" data-group="AdName">إعلانات</button>
+              <button class="pill-tab" data-group="Platform">منصات</button>
+            </div>
+          </div>
+          <canvas id="chartTopSpend" height="230"></canvas>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">ملخص القنوات وأنواع النتائج</div>
+              <div class="card-sub">CTR/Conv لأهم العناصر + توزيع الإنفاق حسب المنصة ونوع النتيجة.</div>
+            </div>
+          </div>
+          <canvas id="chartCtr" height="130" style="margin-bottom:10px;"></canvas>
+          <canvas id="chartResultPie" height="160"></canvas>
+        </section>
+      </section>
+
+      <!-- Table -->
+      <section class="card" style="margin-top:14px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Top 50 — الجدول التفصيلي الحالي</div>
+            <div class="card-sub">يعتمد على الفلاتر الحالية (مصدر البيانات + التجميع).</div>
+          </div>
+        </div>
+        <div id="tableContainer" class="table-wrapper">
+          <div class="empty-state">اختار شهر واضغط "تحميل بيانات الشهر".</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      MZJ Ads Workspace — لوحة موحدة لتحليل المنصات وحملات الرسائل مع مقارنة شهرين وتصدير التقارير.
+    </footer>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh7ofrYeZ_KWlk7NJmBuZw0NLm5xkNBks",
+      authDomain: "mzj-ads.firebaseapp.com",
+      projectId: "mzj-ads",
+      storageBucket: "mzj-ads.firebasestorage.app",
+      messagingSenderId: "830896442086",
+      appId: "1:830896442086:web:f42e7329bd3a8400a90927"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    const monthMain      = document.getElementById("monthMain");
+    const monthCompare   = document.getElementById("monthCompare");
+    const sourceFilter   = document.getElementById("sourceFilter");
+    const groupBySelect  = document.getElementById("groupBySelect");
+    const loadBtn        = document.getElementById("loadBtn");
+    const statusPill     = document.getElementById("statusPill");
+    const statusText     = document.getElementById("statusText");
+    const exportExcelBtn = document.getElementById("exportExcelBtn");
+    const exportPdfBtn   = document.getElementById("exportPdfBtn");
+
+    const kpiSpend   = document.getElementById("kpiSpend");
+    const kpiImpr    = document.getElementById("kpiImpr");
+    const kpiCtr     = document.getElementById("kpiCtr");
+    const kpiCosts   = document.getElementById("kpiCosts");
+
+    const deltaSpend = document.getElementById("deltaSpend");
+    const deltaImpr  = document.getElementById("deltaImpr");
+    const deltaCtr   = document.getElementById("deltaCtr");
+    const deltaCosts = document.getElementById("deltaCosts");
+
+    const chartMainTitle = document.getElementById("chartMainTitle");
+    const tableContainer = document.getElementById("tableContainer");
+    const platformCards  = document.getElementById("platformCards");
+    const groupTabs      = document.getElementById("groupTabs");
+
+    let allMain = [];
+    let allCompare = [];
+    let chartTopSpend, chartCtr, chartResultPie;
+    let lastGrouped = [];
+    let lastGroupKey = "CampaignName";
+
+    function setStatus(text,type="ok"){
+      statusPill.style.display = "inline-flex";
+      statusText.textContent = text;
+      statusPill.classList.remove("status-ok","status-bad");
+      statusPill.classList.add(type==="ok" ? "status-ok" : "status-bad");
+    }
+
+    function formatNumber(num){
+      if(num==null || isNaN(num)) return "-";
+      if(num>=1_000_000) return (num/1_000_000).toFixed(1)+"M";
+      if(num>=1_000)     return (num/1_000).toFixed(1)+"K";
+      return num.toLocaleString("en-US");
+    }
+    function formatPercent(num){
+      if(num==null || isNaN(num)) return "-";
+      return num.toFixed(2)+"٪";
+    }
+    function formatDelta(curr,prev,suffix="٪"){
+      if(prev==null || isNaN(prev) || prev===0 || curr==null || isNaN(curr)){
+        return {text:"",cls:"neutral"};
+      }
+      const diff = (curr - prev) / prev * 100;
+      const sign = diff>0 ? "+" : "";
+      const cls  = diff>0 ? "up" : (diff<0 ? "down" : "neutral");
+      return {text:`${sign}${diff.toFixed(1)}${suffix}`,cls};
+    }
+
+    function filterBySource(data){
+      const mode = sourceFilter.value;
+      if(mode==="platforms") return data.filter(d=>d._src==="platform");
+      if(mode==="messages")  return data.filter(d=>d._src==="message");
+      return data;
+    }
+
+    function computeAggregates(rows, modeForCtr){
+      if(!rows || rows.length===0){
+        return {totalSpend:0,totalImpr:0,totalClicks:0,totalLeads:0,avgCtr:null,avgCpc:null,avgCpl:null};
+      }
+      let totalSpend=0,totalImpr=0,totalClicks=0,totalLeads=0;
+      let ctrSum=0,ctrCount=0;
+      let convSum=0,convCount=0;
+
+      rows.forEach(r=>{
+        const spend = Number(r.Spend||0);
+        const impr  = Number(r.Impressions||0);
+        const clicks= Number(r.Clicks||0);
+        const leads = Number(r.Leads||0);
+        const ctr   = Number(r.CTR||0);
+        const conv  = Number(r.ConversionRate||0);
+        const isMsg = r._src==="message";
+
+        totalSpend+=spend;
+        totalImpr +=impr;
+        totalClicks+=clicks;
+        totalLeads+=leads;
+
+        if(!isNaN(ctr) && ctr>0 && !isMsg){ ctrSum+=ctr; ctrCount++; }
+        if(!isNaN(conv)&& conv>0 && isMsg){ convSum+=conv; convCount++; }
+      });
+
+      let avgCtr=null;
+      if(modeForCtr==="messages"){
+        avgCtr = convCount>0 ? (convSum/convCount) : null;
+      }else if(modeForCtr==="platforms"){
+        avgCtr = ctrCount>0 ? (ctrSum/ctrCount) : (totalImpr>0 ? (totalClicks/totalImpr*100) : null);
+      }else{ // all
+        const combined = ctrCount+convCount;
+        if(combined>0) avgCtr=(ctrSum+convSum)/combined;
+        else if(totalImpr>0) avgCtr= totalClicks/totalImpr*100;
+      }
+
+      const avgCpc = totalClicks>0 ? totalSpend/totalClicks : null;
+      const avgCpl = totalLeads>0 ? totalSpend/totalLeads : null;
+      return {totalSpend,totalImpr,totalClicks,totalLeads,avgCtr,avgCpc,avgCpl};
+    }
+
+    function groupBy(rows,key){
+      const map = new Map();
+      rows.forEach(r=>{
+        const k = (r[key] && String(r[key]).trim()) || "(غير محدد)";
+        if(!map.has(k)){
+          map.set(k,{name:k,spend:0,impr:0,clicks:0,leads:0,ctr:null});
+        }
+        const obj = map.get(k);
+        const spend=Number(r.Spend||0);
+        const impr =Number(r.Impressions||0);
+        const clicks=Number(r.Clicks||0);
+        const leads=Number(r.Leads||0);
+        const metric = r._src==="message" ? Number(r.ConversionRate||0) : Number(r.CTR||0);
+        obj.spend += spend;
+        obj.impr  += impr;
+        obj.clicks+= clicks;
+        obj.leads += leads;
+        if(!isNaN(metric) && metric>0){
+          if(obj.ctr==null) obj.ctr=0;
+          obj.ctr += metric;
+        }
+      });
+      const arr = Array.from(map.values());
+      arr.forEach(item=>{
+        item.cpc = item.clicks>0? item.spend/item.clicks : null;
+        item.cpl = item.leads>0? item.spend/item.leads : null;
+      });
+      return arr;
+    }
+
+    function buildTable(grouped){
+      lastGrouped = grouped || [];
+      if(!grouped || grouped.length===0){
+        tableContainer.innerHTML='<div class="empty-state">لا توجد بيانات مع الفلتر الحالي.</div>';
+        return;
+      }
+      const top=[...grouped].sort((a,b)=>b.spend-a.spend).slice(0,50);
+      let html='<table dir="rtl"><thead><tr>';
+      html+='<th>الاسم</th><th>الإنفاق</th><th>Impressions</th><th>Clicks</th><th>Leads/Results</th><th>CTR/Conv%</th><th>CPC</th><th>CPL</th>';
+      html+='</tr></thead><tbody>';
+      top.forEach(r=>{
+        const badgeClass = r.ctr!=null && r.ctr>=2 ? "badge badge-green" :
+                           r.ctr!=null && r.ctr<0.7 ? "badge badge-red" : "badge badge-amber";
+        html+='<tr>';
+        html+=`<td>${r.name}</td>`;
+        html+=`<td>${formatNumber(r.spend)}</td>`;
+        html+=`<td>${formatNumber(r.impr)}</td>`;
+        html+=`<td>${formatNumber(r.clicks)}</td>`;
+        html+=`<td>${formatNumber(r.leads)}</td>`;
+        html+=`<td><span class="${badgeClass}">${r.ctr!=null?formatPercent(r.ctr):"-"}</span></td>`;
+        html+=`<td>${r.cpc!=null?r.cpc.toFixed(2):"-"}</td>`;
+        html+=`<td>${r.cpl!=null?r.cpl.toFixed(2):"-"}</td>`;
+        html+='</tr>';
+      });
+      html+='</tbody></table>';
+      tableContainer.innerHTML=html;
+    }
+
+    function buildCharts(grouped){
+      const top=[...grouped].sort((a,b)=>b.spend-a.spend).slice(0,10);
+      const labels=top.map(x=>x.name);
+      const spends=top.map(x=>x.spend);
+      const ctrs=top.map(x=>x.ctr||0);
+
+      if(chartTopSpend) chartTopSpend.destroy();
+      if(chartCtr) chartCtr.destroy();
+      if(chartResultPie) chartResultPie.destroy();
+
+      const ctx1=document.getElementById("chartTopSpend").getContext("2d");
+      chartTopSpend=new Chart(ctx1,{
+        type:"bar",
+        data:{labels,datasets:[{label:"Spend",data:spends}]},
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{label:(ctx)=>`إنفاق: ${formatNumber(ctx.parsed.y)} ر.س`}}
+          },
+          scales:{y:{beginAtZero:true}}
+        }
+      });
+
+      const ctx2=document.getElementById("chartCtr").getContext("2d");
+      chartCtr=new Chart(ctx2,{
+        type:"line",
+        data:{labels,datasets:[{label:"CTR/Conv%",data:ctrs}]},
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{label:(ctx)=>`% ${ctx.parsed.y.toFixed(2)}`}}
+          },
+          scales:{y:{beginAtZero:true}}
+        }
+      });
+
+      // Pie by Platform + ResultType
+      const map=new Map();
+      allMain.forEach(r=>{
+        const plat=r.Platform||"Other";
+        const rt=(r.ResultType||"").toString()||"Other";
+        const key=plat+" — "+rt;
+        const spend=Number(r.Spend||0);
+        map.set(key,(map.get(key)||0)+spend);
+      });
+      const pieLabels=Array.from(map.keys());
+      const pieData  =Array.from(map.values());
+      const ctx3=document.getElementById("chartResultPie").getContext("2d");
+      chartResultPie=new Chart(ctx3,{
+        type:"pie",
+        data:{labels:pieLabels,datasets:[{data:pieData}]},
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{position:"bottom"},
+            tooltip:{callbacks:{label:(ctx)=>`${ctx.label}: ${formatNumber(ctx.parsed)} ر.س`}}
+          }
+        }
+      });
+    }
+
+    function buildPlatformCards(rows){
+      if(!rows || rows.length===0){
+        platformCards.innerHTML='<div class="empty-state">لا توجد بيانات كافية لعرض كروت المنصات.</div>';
+        return;
+      }
+      const map=new Map();
+      let totalSpend=0;
+      rows.forEach(r=>{
+        const plat=r.Platform || "Other";
+        const spend=Number(r.Spend||0);
+        const leads=Number(r.Leads||0);
+        totalSpend+=spend;
+        if(!map.has(plat)){
+          map.set(plat,{platform:plat,spend:0,leads:0});
+        }
+        const obj=map.get(plat);
+        obj.spend+=spend;
+        obj.leads+=leads;
+      });
+      const arr=Array.from(map.values()).sort((a,b)=>b.spend-a.spend);
+      let html="";
+      arr.forEach(p=>{
+        const share = totalSpend>0 ? (p.spend/totalSpend*100) : 0;
+        let chipClass="platform-other";
+        if(p.platform==="Meta") chipClass="platform-meta";
+        else if(p.platform==="TikTok") chipClass="platform-tiktok";
+        else if(p.platform==="Snapchat") chipClass="platform-snap";
+        html+=`<article class="platform-card">
+          <div class="platform-header">
+            <div class="platform-name">${p.platform}</div>
+            <div class="platform-chip ${chipClass}">${share.toFixed(1)}٪ من الإنفاق</div>
+          </div>
+          <div class="platform-body">
+            <div>
+              <div class="platform-metric-label">Spend</div>
+              <div class="platform-metric-value">${formatNumber(p.spend)} ر.س</div>
+            </div>
+            <div>
+              <div class="platform-metric-label">Leads / Messages</div>
+              <div class="platform-metric-value">${formatNumber(p.leads)}</div>
+            </div>
+          </div>
+        </article>`;
+      });
+      platformCards.innerHTML=html;
+    }
+
+    async function fetchCollection(month, sub){
+      const ref = collection(db,"analytics",month,sub);
+      const snap = await getDocs(ref);
+      const arr=[];
+      snap.forEach(doc=>arr.push(doc.data()));
+      return arr;
+    }
+
+    async function loadMonth(){
+      const mMain=monthMain.value;
+      const mComp=monthCompare.value;
+      if(!mMain){
+        alert("اختار الشهر الأساسي يا خال 🙏");
+        return;
+      }
+      loadBtn.disabled=true;
+      setStatus("جاري تحميل بيانات الشهر الأساسي والمقارنة (إن وجدت)…","ok");
+      allMain=[];
+      allCompare=[];
+
+      try{
+        // Main
+        const platMain = await fetchCollection(mMain,"platforms_raw");
+        platMain.forEach(d=>{d._src="platform";});
+        const msgMain  = await fetchCollection(mMain,"messages_raw");
+        msgMain.forEach(d=>{d._src="message";});
+        allMain = [...platMain,...msgMain];
+
+        // Compare (optional)
+        if(mComp){
+          const platComp = await fetchCollection(mComp,"platforms_raw");
+          platComp.forEach(d=>{d._src="platform";});
+          const msgComp  = await fetchCollection(mComp,"messages_raw");
+          msgComp.forEach(d=>{d._src="message";});
+          allCompare=[...platComp,...msgComp];
+        }
+
+        if(allMain.length===0){
+          setStatus("لا توجد بيانات للشهر الأساسي في platforms_raw أو messages_raw.","bad");
+          kpiSpend.textContent="-";kpiImpr.textContent="-";kpiCtr.textContent="-";kpiCosts.textContent="-";
+          deltaSpend.textContent="";deltaImpr.textContent="";deltaCtr.textContent="";deltaCosts.textContent="";
+          platformCards.innerHTML='<div class="empty-state">ارفع شيت المنصات والرسائل لهذا الشهر أولاً.</div>';
+          tableContainer.innerHTML='<div class="empty-state">لا توجد بيانات للعرض.</div>';
+          if(chartTopSpend) chartTopSpend.destroy();
+          if(chartCtr) chartCtr.destroy();
+          if(chartResultPie) chartResultPie.destroy();
+          return;
+        }
+
+        setStatus(`تم تحميل ${allMain.length} صف من الشهر الأساسي${allCompare.length? " و "+allCompare.length+" من شهر المقارنة":""} ✅`,"ok");
+
+        const filteredMain = filterBySource(allMain);
+        const aggMain = computeAggregates(filteredMain, sourceFilter.value==="all" ? "all" : sourceFilter.value);
+        const filteredComp = filterBySource(allCompare);
+        const aggComp = computeAggregates(filteredComp, sourceFilter.value==="all" ? "all" : sourceFilter.value);
+
+        kpiSpend.textContent = formatNumber(aggMain.totalSpend);
+        kpiImpr.textContent  = formatNumber(aggMain.totalImpr);
+        kpiCtr.textContent   = aggMain.avgCtr!=null ? formatPercent(aggMain.avgCtr) : "-";
+        const cpcStr = aggMain.avgCpc!=null? aggMain.avgCpc.toFixed(2):"-";
+        const cplStr = aggMain.avgCpl!=null? aggMain.avgCpl.toFixed(2):"-";
+        kpiCosts.textContent = cpcStr+" | "+cplStr;
+
+        if(allCompare.length>0){
+          const dSpend = formatDelta(aggMain.totalSpend, aggComp.totalSpend, "٪");
+          const dImpr  = formatDelta(aggMain.totalImpr,  aggComp.totalImpr,  "٪");
+          const dCtr   = formatDelta(aggMain.avgCtr,     aggComp.avgCtr,     "٪");
+          const dCost  = formatDelta(aggMain.avgCpl,     aggComp.avgCpl,     "٪");
+
+          setDeltaElement(deltaSpend,dSpend);
+          setDeltaElement(deltaImpr,dImpr);
+          setDeltaElement(deltaCtr,dCtr);
+          setDeltaElement(deltaCosts,dCost);
+        }else{
+          clearDelta(deltaSpend);
+          clearDelta(deltaImpr);
+          clearDelta(deltaCtr);
+          clearDelta(deltaCosts);
+        }
+
+        const key = groupBySelect.value;
+        lastGroupKey = key;
+        updateTabsActive(key);
+
+        const grouped = groupBy(filteredMain,key);
+        chartMainTitle.textContent =
+          key==="CampaignName" ? "Top 10 حملات حسب الإنفاق" :
+          key==="AdSetName"    ? "Top 10 مجموعات إعلانية حسب الإنفاق" :
+          key==="AdName"       ? "Top 10 إعلانات حسب الإنفاق" :
+                                 "Top 10 منصات حسب الإنفاق";
+
+        buildTable(grouped);
+        buildCharts(grouped);
+        buildPlatformCards(filteredMain);
+
+      }catch(err){
+        console.error(err);
+        setStatus("حصل خطأ أثناء تحميل البيانات: "+err.message,"bad");
+        alert("Firestore Error: "+err.message);
+      }finally{
+        loadBtn.disabled=false;
+      }
+    }
+
+    function setDeltaElement(el,delta){
+      el.textContent = delta.text;
+      el.classList.remove("up","down","neutral");
+      el.classList.add(delta.cls||"neutral");
+    }
+    function clearDelta(el){
+      el.textContent="";
+      el.classList.remove("up","down","neutral");
+      el.classList.add("neutral");
+    }
+
+    sourceFilter.addEventListener("change",()=>{
+      if(!allMain.length) return;
+      const filteredMain = filterBySource(allMain);
+      const filteredComp = filterBySource(allCompare);
+
+      const aggMain = computeAggregates(filteredMain, sourceFilter.value==="all" ? "all" : sourceFilter.value);
+      const aggComp = computeAggregates(filteredComp, sourceFilter.value==="all" ? "all" : sourceFilter.value);
+
+      kpiSpend.textContent = formatNumber(aggMain.totalSpend);
+      kpiImpr.textContent  = formatNumber(aggMain.totalImpr);
+      kpiCtr.textContent   = aggMain.avgCtr!=null ? formatPercent(aggMain.avgCtr) : "-";
+      const cpcStr = aggMain.avgCpc!=null? aggMain.avgCpc.toFixed(2):"-";
+      const cplStr = aggMain.avgCpl!=null? aggMain.avgCpl.toFixed(2):"-";
+      kpiCosts.textContent = cpcStr+" | "+cplStr;
+
+      if(allCompare.length>0){
+        const dSpend = formatDelta(aggMain.totalSpend, aggComp.totalSpend, "٪");
+        const dImpr  = formatDelta(aggMain.totalImpr,  aggComp.totalImpr,  "٪");
+        const dCtr   = formatDelta(aggMain.avgCtr,     aggComp.avgCtr,     "٪");
+        const dCost  = formatDelta(aggMain.avgCpl,     aggComp.avgCpl,     "٪");
+        setDeltaElement(deltaSpend,dSpend);
+        setDeltaElement(deltaImpr,dImpr);
+        setDeltaElement(deltaCtr,dCtr);
+        setDeltaElement(deltaCosts,dCost);
+      }else{
+        clearDelta(deltaSpend);
+        clearDelta(deltaImpr);
+        clearDelta(deltaCtr);
+        clearDelta(deltaCosts);
+      }
+
+      const key = lastGroupKey;
+      const grouped = groupBy(filteredMain,key);
+      buildTable(grouped);
+      buildCharts(grouped);
+      buildPlatformCards(filteredMain);
+    });
+
+    groupBySelect.addEventListener("change",()=>{
+      if(!allMain.length) return;
+      const filteredMain = filterBySource(allMain);
+      const key = groupBySelect.value;
+      lastGroupKey = key;
+      updateTabsActive(key);
+      const grouped = groupBy(filteredMain,key);
+      chartMainTitle.textContent =
+        key==="CampaignName" ? "Top 10 حملات حسب الإنفاق" :
+        key==="AdSetName"    ? "Top 10 مجموعات إعلانية حسب الإنفاق" :
+        key==="AdName"       ? "Top 10 إعلانات حسب الإنفاق" :
+                               "Top 10 منصات حسب الإنفاق";
+      buildTable(grouped);
+      buildCharts(grouped);
+    });
+
+    function updateTabsActive(key){
+      const tabs = groupTabs.querySelectorAll(".pill-tab");
+      tabs.forEach(t=>{
+        const g=t.getAttribute("data-group");
+        if(g===key) t.classList.add("active");
+        else t.classList.remove("active");
+      });
+    }
+
+    groupTabs.addEventListener("click",(e)=>{
+      if(e.target.classList.contains("pill-tab")){
+        const g=e.target.getAttribute("data-group");
+        groupBySelect.value=g;
+        groupBySelect.dispatchEvent(new Event("change"));
+      }
+    });
+
+    loadBtn.addEventListener("click",loadMonth);
+
+    exportExcelBtn.addEventListener("click",()=>{
+      if(!lastGrouped || lastGrouped.length===0){
+        alert("مفيش بيانات في الجدول الحالي للتصدير يا خال.");
+        return;
+      }
+      const data = lastGrouped.map(r=>({
+        Name: r.name,
+        Spend: r.spend,
+        Impressions: r.impr,
+        Clicks: r.clicks,
+        Leads_Results: r.leads,
+        CTR_Conv: r.ctr,
+        CPC: r.cpc,
+        CPL: r.cpl
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,"Dashboard");
+      const m = monthMain.value || "month";
+      XLSX.writeFile(wb,`mzj-ads-dashboard-${m}.xlsx`);
+    });
+
+    exportPdfBtn.addEventListener("click",()=>{
+      // نستخدم طباعة المتصفح، والمستخدم يختار "حفظ كملف PDF"
+      window.print();
+    });
+
+    (function presetMonth(){
+      const now=new Date();
+      const y=now.getFullYear();
+      const m=String(now.getMonth()+1).padStart(2,"0");
+      monthMain.value = `${y}-${m}`;
+    })();
+  </script>
+</body>
+</html>

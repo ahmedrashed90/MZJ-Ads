@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>رفع الشيت — نجم الطريق (Mobile)</title>
+
+  <!-- Tajawal Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --brown:#3e2420;
+      --beige:#bc8f74;
+      --cream:#fff8ef;
+      --dark:#050506;
+      --danger:#ff6b6b;
+      --success:#4cd964;
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Tajawal', sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+      background: radial-gradient(circle at 10% 0%, #3e2420 0, #050506 55%, #020203 100%);
+      color:var(--cream);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .app{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      padding:14px 14px 80px;
+      gap:10px;
+      position:relative;
+    }
+
+    /* Top bar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .brand{
+      text-align:right;
+    }
+
+    .brand .name{
+      font-size:15px;
+      font-weight:700;
+    }
+
+    .brand .sub{
+      font-size:11px;
+      color:rgba(255,248,239,0.85);
+    }
+
+    .pill{
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,248,239,0.4);
+      background:linear-gradient(135deg, rgba(15,10,10,0.9), rgba(48,27,22,0.95));
+      box-shadow:0 0 16px rgba(0,0,0,0.7);
+      font-size:13px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+
+    .pill span.star{
+      font-size:16px;
+      color:#ffd18a;
+      text-shadow:0 0 10px rgba(255,209,138,0.8);
+    }
+
+    /* Sections */
+    .section-title{
+      margin-top:14px;
+      font-size:13px;
+      opacity:.9;
+    }
+
+    /* Last upload summary */
+    .summary-card{
+      margin-top:8px;
+      background:linear-gradient(135deg, rgba(15,10,10,0.88), rgba(34,22,18,0.94));
+      border-radius:14px;
+      padding:10px 12px 10px;
+      border:1px solid rgba(255,248,239,0.18);
+      box-shadow:0 10px 24px rgba(0,0,0,0.7);
+      font-size:12px;
+    }
+
+    .summary-row{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:4px;
+    }
+
+    .summary-label{
+      color:rgba(255,248,239,0.8);
+    }
+
+    .summary-value{
+      font-weight:700;
+    }
+
+    .summary-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      margin-top:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(0,0,0,0.4);
+      border:1px solid rgba(255,248,239,0.2);
+    }
+
+    /* Upload form */
+    .upload-card{
+      margin-top:14px;
+      background:linear-gradient(135deg, rgba(15,10,10,0.78), rgba(34,22,18,0.9));
+      border-radius:16px;
+      padding:14px 12px 12px;
+      border:1px solid rgba(255,248,239,0.18);
+      box-shadow:0 12px 26px rgba(0,0,0,0.75);
+      font-size:13px;
+    }
+
+    .upload-card h2{
+      font-size:14px;
+      margin-bottom:6px;
+    }
+
+    .field{
+      margin-top:10px;
+    }
+
+    .field label{
+      display:block;
+      font-size:12px;
+      margin-bottom:4px;
+      color:rgba(255,248,239,0.9);
+    }
+
+    .file-input-wrap{
+      position:relative;
+    }
+
+    .file-input{
+      opacity:0;
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:38px;
+      cursor:pointer;
+    }
+
+    .file-fake{
+      height:38px;
+      border-radius:999px;
+      border:1px solid rgba(255,248,239,0.4);
+      background:rgba(5,5,6,0.9);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 12px;
+      font-size:12px;
+      color:rgba(255,248,239,0.9);
+    }
+
+    .file-fake span.name{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .file-fake span.action{
+      font-weight:700;
+      color:var(--beige);
+    }
+
+    select{
+      width:100%;
+      height:38px;
+      border-radius:999px;
+      border:1px solid rgba(255,248,239,0.4);
+      background:rgba(5,5,6,0.9);
+      color:var(--cream);
+      padding:0 10px;
+      font-size:12px;
+      outline:none;
+    }
+
+    .hint{
+      margin-top:4px;
+      font-size:11px;
+      color:rgba(255,248,239,0.75);
+    }
+
+    .actions{
+      margin-top:14px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .btn-primary{
+      flex:1;
+      padding:9px 0;
+      border-radius:999px;
+      border:none;
+      background:linear-gradient(135deg, #bc8f74, #f3d0b5);
+      color:#3e2420;
+      font-weight:700;
+      font-size:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,0.6);
+      transition:.16s;
+    }
+
+    .btn-primary:active{
+      transform:scale(0.97);
+      box-shadow:0 4px 12px rgba(0,0,0,0.8);
+    }
+
+    .status-text{
+      font-size:11px;
+      color:rgba(255,248,239,0.8);
+      white-space:nowrap;
+    }
+
+    /* Progress bar */
+    .progress-wrap{
+      margin-top:10px;
+      height:6px;
+      border-radius:999px;
+      background:rgba(255,248,239,0.08);
+      overflow:hidden;
+    }
+
+    .progress-inner{
+      height:100%;
+      width:0%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, #bc8f74, #f3d0b5);
+      transition:width .2s linear;
+    }
+
+    /* recent uploads */
+    .panel{
+      margin-top:14px;
+      background:linear-gradient(135deg, rgba(15,10,10,0.75), rgba(34,22,18,0.9));
+      border-radius:16px;
+      padding:12px 12px 10px;
+      border:1px solid rgba(255,248,239,0.18);
+      box-shadow:0 10px 22px rgba(0,0,0,0.7);
+      font-size:12px;
+    }
+
+    .panel-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    .panel-header h3{
+      font-size:13px;
+    }
+
+    .badge{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(0,0,0,0.4);
+      border:1px solid rgba(255,248,239,0.25);
+    }
+
+    .row{
+      padding:6px 0;
+      border-bottom:1px dashed rgba(255,248,239,0.1);
+    }
+
+    .row:last-child{
+      border-bottom:none;
+    }
+
+    .row-main{
+      font-size:12px;
+      margin-bottom:2px;
+    }
+
+    .row-meta{
+      font-size:10px;
+      color:rgba(255,248,239,0.7);
+    }
+
+    /* bottom nav */
+    .bottom-nav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      height:60px;
+      background:rgba(5,5,6,0.96);
+      border-top:1px solid rgba(255,248,239,0.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-around;
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      z-index:10;
+    }
+
+    .nav-item{
+      font-size:11px;
+      color:rgba(255,248,239,0.75);
+      text-align:center;
+    }
+
+    .nav-item span.icon{
+      display:block;
+      font-size:16px;
+      margin-bottom:2px;
+    }
+
+    .nav-item.active{
+      color:#f3d0b5;
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="name">رفع الشيت — نجم الطريق</div>
+      <div class="sub">عرض مخصص للجوال لرفع وتحديث البيانات بسهولة</div>
+    </div>
+    <div class="pill">
+      نجم الطريق <span class="star">★</span>
+    </div>
+  </header>
+
+  <!-- Last upload summary -->
+  <section>
+    <div class="section-title">آخر عملية رفع</div>
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-label">النوع:</span>
+        <span class="summary-value" id="last-type">شيت المخزون</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">عدد الصفوف:</span>
+        <span class="summary-value" id="last-rows">1,250</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">آخر تحديث:</span>
+        <span class="summary-value" id="last-updated">اليوم • 10:34 ص</span>
+      </div>
+      <div class="summary-badge">
+        حالة آخر رفع: <strong>ناجح</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- Upload form -->
+  <section class="upload-card">
+    <h2>رفع شيت جديد</h2>
+
+    <div class="field">
+      <label>اختيار الملف (Excel / CSV)</label>
+      <div class="file-input-wrap">
+        <input type="file" id="file-input" class="file-input" accept=".xlsx,.xls,.csv">
+        <div class="file-fake">
+          <span class="name" id="file-name">لم يتم اختيار ملف</span>
+          <span class="action">اختيار ملف</span>
+        </div>
+      </div>
+      <div class="hint">يفضل أن يكون الشيت منسّق بنفس أعمدة النظام الحالية.</div>
+    </div>
+
+    <div class="field">
+      <label>نوع الشيت</label>
+      <select id="sheet-type">
+        <option value="inventory">شيت المخزون</option>
+        <option value="requests">شيت الطلبات</option>
+        <option value="photoshoot">شيت طلبات التصوير</option>
+      </select>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-primary" id="upload-btn">ابدأ الرفع</button>
+      <div class="status-text" id="status-text">في انتظار اختيار الملف…</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-inner" id="progress-bar"></div>
+    </div>
+  </section>
+
+  <!-- Recent uploads -->
+  <section class="panel">
+    <div class="panel-header">
+      <h3>سجل عمليات الرفع الأخيرة</h3>
+      <span class="badge">آخر 3 شيتات</span>
+    </div>
+
+    <div class="row">
+      <div class="row-main">شيت المخزون — 1,250 صف</div>
+      <div class="row-meta">اليوم • 10:34 ص • ناجح</div>
+    </div>
+
+    <div class="row">
+      <div class="row-main">شيت الطلبات — 320 صف</div>
+      <div class="row-meta">أمس • 6:12 م • ناجح مع تحذيرات</div>
+    </div>
+
+    <div class="row">
+      <div class="row-main">شيت طلبات التصوير — 75 صف</div>
+      <div class="row-meta">منذ 3 أيام • فشل في 5 صفوف</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <div class="nav-item">
+    <span class="icon">📊</span>
+    الداشبورد
+  </div>
+  <div class="nav-item active">
+    <span class="icon">📤</span>
+    رفع الشيت
+  </div>
+  <div class="nav-item">
+    <span class="icon">📂</span>
+    المخزون
+  </div>
+  <div class="nav-item">
+    <span class="icon">⚙️</span>
+    الإعدادات
+  </div>
+</nav>
+
+<script>
+  // إظهار اسم الملف المختار
+  const fileInput = document.getElementById('file-input');
+  const fileNameSpan = document.getElementById('file-name');
+  const uploadBtn = document.getElementById('upload-btn');
+  const statusText = document.getElementById('status-text');
+  const progressBar = document.getElementById('progress-bar');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files.length > 0) {
+        fileNameSpan.textContent = fileInput.files[0].name;
+        statusText.textContent = 'جاهز للرفع…';
+      } else {
+        fileNameSpan.textContent = 'لم يتم اختيار ملف';
+        statusText.textContent = 'في انتظار اختيار الملف…';
+      }
+    });
+  }
+
+  // محاكاة بسيطة للـ Progress (هتستبدلها أنت بكود الرفع الحقيقي)
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', () => {
+      if (!fileInput.files || fileInput.files.length === 0) {
+        statusText.textContent = 'من فضلك اختر ملف أولاً';
+        statusText.style.color = 'var(--danger)';
+        return;
+      }
+
+      statusText.style.color = '';
+      statusText.textContent = 'جارٍ رفع الشيت…';
+      progressBar.style.width = '0%';
+
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = progress + '%';
+        if (progress >= 100) {
+          clearInterval(interval);
+          statusText.textContent = 'تم رفع الشيت (محاكاة) — اربطها بالكود الحقيقي 👌';
+          statusText.style.color = 'var(--success)';
+        }
+      }, 200);
+    });
+  }
+</script>
+
+</body>
+</html>

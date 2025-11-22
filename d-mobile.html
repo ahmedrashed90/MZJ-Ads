@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة تحكم نجم الطريق — موبايل</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --brown:#3e2420;
+      --beige:#bc8f74;
+      --cream:#fff8ef;
+      --dark:#050506;
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Tajawal', sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+      background: radial-gradient(circle at 10% 0%, #3e2420 0, #050506 55%, #020203 100%);
+      color:var(--cream);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .app{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      padding:14px 14px 80px;
+      gap:10px;
+      position:relative;
+    }
+
+    /* شريط علوي */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .brand{
+      text-align:right;
+    }
+
+    .brand .name{
+      font-size:15px;
+      font-weight:700;
+    }
+
+    .brand .sub{
+      font-size:11px;
+      color:rgba(255,248,239,0.85);
+    }
+
+    .pill{
+      padding:6px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,248,239,0.4);
+      background:linear-gradient(135deg, rgba(15,10,10,0.9), rgba(48,27,22,0.95));
+      box-shadow:0 0 16px rgba(0,0,0,0.7);
+      font-size:13px;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .pill span.star{
+      font-size:16px;
+      color:#ffd18a;
+      text-shadow:0 0 10px rgba(255,209,138,0.8);
+    }
+
+    /* قسم الملخص */
+    .section-title{
+      margin-top:12px;
+      font-size:13px;
+      opacity:.9;
+    }
+
+    .cards-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .card{
+      background:linear-gradient(135deg, rgba(15,10,10,0.88), rgba(34,22,18,0.92));
+      border-radius:14px;
+      padding:10px 10px 8px;
+      border:1px solid rgba(255,248,239,0.18);
+      box-shadow:0 10px 22px rgba(0,0,0,0.7);
+    }
+
+    .card-label{
+      font-size:11px;
+      color:rgba(255,248,239,0.8);
+      margin-bottom:4px;
+    }
+
+    .card-value{
+      font-size:17px;
+      font-weight:800;
+    }
+
+    .card-note{
+      font-size:10px;
+      color:rgba(255,248,239,0.7);
+      margin-top:2px;
+    }
+
+    /* قائمة مهام / نشاط */
+    .panel{
+      margin-top:12px;
+      background:linear-gradient(135deg, rgba(15,10,10,0.75), rgba(34,22,18,0.9));
+      border-radius:16px;
+      padding:12px 12px 10px;
+      border:1px solid rgba(255,248,239,0.18);
+      box-shadow:0 12px 24px rgba(0,0,0,0.75);
+    }
+
+    .panel-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:8px;
+    }
+
+    .panel-header h2{
+      font-size:14px;
+    }
+
+    .panel-header span.badge{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(255,248,239,0.08);
+      border:1px solid rgba(255,248,239,0.25);
+    }
+
+    .task-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      padding:6px 0;
+      border-bottom:1px dashed rgba(255,248,239,0.08);
+    }
+
+    .task-row:last-child{
+      border-bottom:none;
+    }
+
+    .task-main{
+      font-size:12px;
+      margin-bottom:2px;
+    }
+
+    .task-meta{
+      font-size:10px;
+      color:rgba(255,248,239,0.7);
+    }
+
+    .task-status{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(0,0,0,0.4);
+      border:1px solid rgba(255,248,239,0.2);
+      white-space:nowrap;
+      margin-right:6px;
+    }
+
+    /* ناف بار سفلي بسيط */
+    .bottom-nav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      height:60px;
+      background:rgba(5,5,6,0.96);
+      border-top:1px solid rgba(255,248,239,0.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-around;
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      z-index:10;
+    }
+
+    .nav-item{
+      font-size:11px;
+      color:rgba(255,248,239,0.75);
+      text-align:center;
+    }
+
+    .nav-item span.icon{
+      display:block;
+      font-size:16px;
+      margin-bottom:2px;
+    }
+
+    .nav-item.active{
+      color:#f3d0b5;
+      font-weight:700;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="name">لوحة تحكم نجم الطريق</div>
+      <div class="sub">عرض مخصص للجوال — إحصائيات مختصرة وسريعة</div>
+    </div>
+    <div class="brand-mark">
+      <div class="pill">
+        نجم الطريق <span class="star">★</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Summary cards (هنا تربط أرقامك الحقيقية لاحقًا) -->
+  <div>
+    <div class="section-title">ملخص اليوم</div>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-label">إجمالي الطلبات</div>
+        <div class="card-value" id="total-requests">52</div>
+        <div class="card-note">كل طلبات التصوير والنقل</div>
+      </div>
+      <div class="card">
+        <div class="card-label">تحت الإجراء</div>
+        <div class="card-value" id="in-progress">17</div>
+        <div class="card-note">تحت الإجراء / تم التجهيز / قيد المراجعة</div>
+      </div>
+      <div class="card">
+        <div class="card-label">تم التنفيذ</div>
+        <div class="card-value" id="done-count">23</div>
+        <div class="card-note">تصوير مكتمل + نقل منفّذ</div>
+      </div>
+      <div class="card">
+        <div class="card-label">تنبيهات اليوم</div>
+        <div class="card-value" id="alerts-count">5</div>
+        <div class="card-note">طلبات تحتاج متابعة سريعة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tasks / activity panel -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2>آخر المهام / الطلبات</h2>
+      <span class="badge">عرض مختصر للجوال</span>
+    </div>
+
+    <!-- مثال مهام - هنا لاحقًا تربطها بالـ Firebase أو الداتا الحقيقية -->
+    <div class="task-row">
+      <div>
+        <div class="task-main">مراجعة طلب نقل سيارة من مستودع إلى فرع الشفا</div>
+        <div class="task-meta">قبل 15 دقيقة • مسؤول العمليات</div>
+      </div>
+      <div class="task-status">قيد المراجعة</div>
+    </div>
+
+    <div class="task-row">
+      <div>
+        <div class="task-main">تأكيد تصوير سيارة هايونداي توسان — حملة ديسمبر</div>
+        <div class="task-meta">قبل ساعة • فريق التسويق</div>
+      </div>
+      <div class="task-status">تحت الإجراء</div>
+    </div>
+
+    <div class="task-row">
+      <div>
+        <div class="task-main">اكتمال نقل سيارات عرض الجمعة البيضا لفروع المعارض</div>
+        <div class="task-meta">اليوم • النظام</div>
+      </div>
+      <div class="task-status">تم التنفيذ</div>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <div class="nav-item active">
+    <span class="icon">📊</span>
+    الداشبورد
+  </div>
+  <div class="nav-item">
+    <span class="icon">📷</span>
+    الطلبات
+  </div>
+  <div class="nav-item">
+    <span class="icon">📂</span>
+    المخزون
+  </div>
+  <div class="nav-item">
+    <span class="icon">⚙️</span>
+    الإعدادات
+  </div>
+</nav>
+
+</body>
+</html>

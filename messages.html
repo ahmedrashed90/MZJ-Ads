@@ -1,70 +1,57 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <style>
-  /* RESET BODY FOR UNIFIED TOPBAR */
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #f1ebe4;
+  .mzj-topbar{
+    width:100%;
+    position:sticky;
+    top:0;
+    z-index:999;
+    background:#3e2420;
+    padding:12px 0;              /* كانت 20px خليتها 12px */
+    box-shadow:0 4px 18px rgba(0,0,0,0.32);
   }
 
-  /* UNIFIED TOPBAR */
-  .mzj-topbar {
-    width: 100%;
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background: #3e2420;
-    padding: 20px 0;
-    box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+  .mzj-topbar-inner{
+    max-width:1350px;
+    margin:0 auto;
+    padding:0 20px;              /* ممكن تزود/تنقص على مزاجك */
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
   }
 
-  .mzj-topbar-inner {
-    max-width: 1350px;
-    margin: 0 auto;
-    padding: 0 22px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .mzj-topbar-title{
+    color:#fff;
+    font-size:16px;              /* كانت 18px */
+    font-weight:800;
   }
 
-  .mzj-topbar-left {
-    display: flex;
-    flex-direction: column;
+  .mzj-topbar-sub{
+    color:#fff;
+    opacity:.85;
+    font-size:11px;              /* كانت 12px */
+    margin-top:3px;
   }
 
-  .mzj-topbar-title {
-    color: #fff;
-    font-size: 18px;
-    font-weight: 800;
+  .mzj-topbar-nav{
+    display:flex;
+    gap:10px;
   }
 
-  .mzj-topbar-sub {
-    color: #fff;
-    opacity: .85;
-    font-size: 12px;
-    margin-top: 4px;
+  .mzj-topbar-link{
+    padding:5px 14px;            /* كانت 7px 18px */
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.6);
+    color:#ffffff;
+    font-size:12px;              /* كانت 13px */
+    text-decoration:none;
+    transition:.2s;
   }
 
-  .mzj-topbar-nav {
-    display: flex;
-    gap: 12px;
-  }
-
-  .mzj-topbar-link {
-    padding: 7px 18px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.6);
-    color: #ffffff;
-    font-size: 13px;
-    text-decoration: none;
-    transition: .2s;
-  }
-
-  .mzj-topbar-link:hover {
-    background: #facc15;
-    border-color: #facc15;
-    color: #1f2937;
+  .mzj-topbar-link:hover{
+    background:#facc15;
+    border-color:#facc15;
+    color:#1f2937;
   }
 </style>
 

@@ -178,6 +178,39 @@
     رفع الرسائل
   </div>
 </nav>
+<script>
+  // تفعيل الضغط على عناصر الـ bottom-nav
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(function (item) {
+
+    item.addEventListener('click', function () {
+
+      // إزالة Active من كل العناصر
+      document.querySelectorAll('.bottom-nav .nav-item')
+        .forEach(function (el) {
+          el.classList.remove('active');
+        });
+
+      // إضافة Active للعنصر اللي اتداس عليه
+      item.classList.add('active');
+
+      // نحدد الصفحة حسب النص
+      let text = item.innerText.trim();
+
+      // التحويل إلى صفحات الموبايل الصحيحة
+      if (text.includes("الداشبورد")) {
+        window.location.href = "d-mobile.html";
+      }
+      else if (text.includes("رفع المنصات")) {
+        window.location.href = "u-mobile.html";
+      }
+      else if (text.includes("رفع الرسائل")) {
+        window.location.href = "m-mobile.html";
+      }
+
+    });
+
+  });
+</script>
 
 </body>
 </html>

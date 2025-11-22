@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -482,6 +483,36 @@
   background:#facc15;
   color:#1f2937;
   border-color:#facc15;
+}
+</style><style>
+/* === Unified Topbar Tight Fix === */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body::before {
+  content: "";
+  display: block;
+  height: 0px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.mzj-topbar {
+  margin-top: 0 !important;
+  top: 0 !important;
+  padding: 12px 0 !important;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.32) !important;
+}
+
+.mzj-topbar-inner {
+  padding: 0 20px !important;
+}
+
+.mzj-topbar-link {
+  padding: 5px 14px !important;
+  font-size: 12px !important;
 }
 </style></head>
 <body>

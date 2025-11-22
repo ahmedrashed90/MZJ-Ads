@@ -1,5 +1,73 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+  <style>
+  /* RESET BODY FOR UNIFIED TOPBAR */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #f1ebe4;
+  }
+
+  /* UNIFIED TOPBAR */
+  .mzj-topbar {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: #3e2420;
+    padding: 20px 0;
+    box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+  }
+
+  .mzj-topbar-inner {
+    max-width: 1350px;
+    margin: 0 auto;
+    padding: 0 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mzj-topbar-left {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mzj-topbar-title {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .mzj-topbar-sub {
+    color: #fff;
+    opacity: .85;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .mzj-topbar-nav {
+    display: flex;
+    gap: 12px;
+  }
+
+  .mzj-topbar-link {
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.6);
+    color: #ffffff;
+    font-size: 13px;
+    text-decoration: none;
+    transition: .2s;
+  }
+
+  .mzj-topbar-link:hover {
+    background: #facc15;
+    border-color: #facc15;
+    color: #1f2937;
+  }
+</style>
+
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MZJ Ads — رفع حملات الرسائل (Mobile)</title>
+
+  <!-- Tajawal Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root{
+      --brown:#3e2420;
+      --beige:#bc8f74;
+      --cream:#fff8ef;
+      --muted:#6b7280;
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Tajawal',sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+      background:#f5eee8;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* Top bar */
+    .topbar{
+      background:#3e2420;
+      color:#f9fafb;
+      padding:10px 14px;
+      box-shadow:0 8px 22px rgba(0,0,0,0.55);
+    }
+    .topbar-title{
+      font-size:15px;
+      font-weight:800;
+    }
+    .topbar-sub{
+      font-size:11px;
+      opacity:.9;
+    }
+
+    /* Main app */
+    .app{
+      flex:1;
+      padding:14px 14px 70px;
+    }
+
+    .tag{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      font-size:11px;
+      color:#4b5563;
+      margin-bottom:8px;
+    }
+    .tag-dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:#0ea5e9;
+    }
+
+    .card{
+      background:#fff;
+      border-radius:14px;
+      padding:16px 14px;
+      box-shadow:0 10px 25px rgba(0,0,0,.12);
+      border:1px solid #e5e7eb;
+      max-width:520px;
+      margin:0 auto;
+    }
+
+    h2{
+      margin-top:0;
+      font-size:16px;
+      color:var(--brown);
+    }
+
+    label{
+      font-weight:600;
+      margin-bottom:4px;
+      display:block;
+      color:var(--brown);
+      font-size:13px;
+    }
+
+    input,select{
+      width:100%;
+      padding:9px 10px;
+      border-radius:10px;
+      border:1px solid #ddd;
+      margin-bottom:12px;
+      font-size:13px;
+      background:#fafafa;
+      outline:none;
+    }
+
+    small{
+      display:block;
+      font-size:11px;
+      color:var(--muted);
+      margin-top:-6px;
+      margin-bottom:10px;
+    }
+
+    button{
+      width:100%;
+      padding:10px 0;
+      border:none;
+      border-radius:999px;
+      background:#3e2420;
+      color:#fff;
+      font-weight:700;
+      font-size:14px;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(62,36,32,.35);
+    }
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    button:not(:disabled):active{
+      transform:scale(0.97);
+    }
+
+    h3{
+      margin-top:18px;
+      margin-bottom:8px;
+      font-size:14px;
+      color:#111827;
+    }
+
+    #log{
+      background:#020617;
+      color:#e5e7eb;
+      padding:10px;
+      border-radius:10px;
+      font-size:11px;
+      height:220px;
+      overflow:auto;
+      white-space:pre-wrap;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    /* Bottom nav */
+    .bottom-nav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      height:56px;
+      background:#111827;
+      color:#e5e7eb;
+      display:flex;
+      align-items:center;
+      justify-content:space-around;
+      font-size:11px;
+      z-index:20;
+    }
+    .nav-item{
+      text-align:center;
+      opacity:.8;
+      cursor:pointer;
+    }
+    .nav-item span.icon{
+      display:block;
+      font-size:16px;
+      margin-bottom:2px;
+    }
+    .nav-item.active{
+      opacity:1;
+      color:#facc15;
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title">MZJ Ads Workspace</div>
+    <div class="topbar-sub">رفع حملات الرسائل (Meta / TikTok / Snap)</div>
+  </header>
+
+  <!-- Main content -->
+  <main class="app">
+    <div class="card">
+      <div class="tag">
+        <span class="tag-dot"></span>
+        <span>MZJ Ads — رفع حملات الرسائل (Messages Campaigns)</span>
+      </div>
+
+      <h2>رفع شيت حملات الرسائل</h2>
+
+      <label>الشهر</label>
+      <input type="month" id="month"/>
+      <small>هيتخزن في: analytics / {"{الشهر}"} / messages_raw</small>
+
+      <label>المنصة</label>
+      <select id="platform">
+        <option value="Meta">Meta (Facebook / Instagram)</option>
+        <option value="TikTok">TikTok</option>
+        <option value="Snapchat">Snapchat</option>
+        <option value="Other">منصة أخرى</option>
+      </select>
+
+      <label>ملف حملات الرسائل (CSV أو Excel)</label>
+      <input type="file" id="file" accept=".csv,.xlsx,.xls"/>
+      <small>يُفضّل يكون فيه: Campaign / Ad Set / Spend / Impressions / Results (عدد المحادثات) / Cost per Result.</small>
+
+      <button id="uploadBtn">رفع الشيت ومعالجته</button>
+
+      <h3>اللوج / اللي بيحصل في الخلفية</h3>
+      <div id="log"></div>
+    </div>
+  </main>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <div class="nav-item" >
+      <span class="icon">📊</span>
+      الداشبورد
+    </div>
+    <div class="nav-item">
+      <span class="icon">📤</span>
+      رفع المنصات
+    </div>
+    <div class="nav-item active">
+      <span class="icon">💬</span>
+      رفع الرسائل
+    </div>
+  </nav>
+
+  <!-- Firebase + logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh7ofrYeZ_KWlk7NJmBuZw0NLm5xkNBks",
+      authDomain: "mzj-ads.firebaseapp.com",
+      projectId: "mzj-ads",
+      storageBucket: "mzj-ads.firebasestorage.app",
+      messagingSenderId: "830896442086",
+      appId: "1:830896442086:web:f42e7329bd3a8400a90927"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const monthInput = document.getElementById("month");
+    const fileInput  = document.getElementById("file");
+    const uploadBtn  = document.getElementById("uploadBtn");
+    const logBox     = document.getElementById("log");
+    const platformSel= document.getElementById("platform");
+
+    function log(txt){
+      const now = new Date();
+      const time = now.toISOString().split("T")[1].split(".")[0];
+      logBox.textContent += "["+time+"] "+txt+"\\n";
+      logBox.scrollTop = logBox.scrollHeight;
+      console.log(txt);
+    }
+
+    async function readFileSmart(file){
+      const buffer = await file.arrayBuffer();
+      const name   = file.name.toLowerCase();
+      const isCsv  = name.endsWith(".csv");
+
+      if(!isCsv){
+        log("📄 ملف Excel (XLS/XLSX) — قراءة بصيغة array");
+        const wb = XLSX.read(buffer,{ type:"array" });
+        const sheet = wb.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval:"", raw:true });
+        return rows;
+      }
+
+      const bytes = new Uint8Array(buffer);
+      let text;
+      log("📄 ملف CSV — محاولة اكتشاف الترميز (UTF-8 / UTF-16 / Windows-1256)...");
+
+      if(bytes[0] === 0xFF && bytes[1] === 0xFE){
+        log("🔎 UTF-16 LE");
+        text = new TextDecoder("utf-16le").decode(buffer);
+      }else if(bytes[0] === 0xFE && bytes[1] === 0xFF){
+        log("🔎 UTF-16 BE");
+        text = new TextDecoder("utf-16be").decode(buffer);
+      }else{
+        try{
+          log("🔎 تجربة UTF-8");
+          text = new TextDecoder("utf-8").decode(buffer);
+          if(text.includes("Ù") || text.includes("Ø") || text.includes("Ð")){
+            log("⚠ العربي بايظ… إعادة القراءة windows-1256");
+            text = new TextDecoder("windows-1256").decode(buffer);
+          }
+        }catch(e){
+          log("⚠ فشل UTF-8… استخدام windows-1256");
+          text = new TextDecoder("windows-1256").decode(buffer);
+        }
+      }
+
+      const wb = XLSX.read(text,{ type:"string" });
+      const sheet = wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval:"", raw:true });
+      return rows;
+    }
+
+    function getField(row,names){
+      for(const n of names){
+        if(Object.prototype.hasOwnProperty.call(row,n) && row[n] !== "") return row[n];
+      }
+      return "";
+    }
+
+    function getNumField(row,names){
+      const v = getField(row,names);
+      if(v === "" || v === null || v === undefined) return null;
+      const n = Number(v);
+      return isNaN(n) ? null : n;
+    }
+
+    uploadBtn.onclick = async () => {
+      const month = monthInput.value;
+      const file  = fileInput.files[0];
+      const plat  = platformSel.value;
+
+      if(!month){ alert("اختار الشهر يا خال 🙏"); return; }
+      if(!file){ alert("اختار الشيت الأول 🙏"); return; }
+
+      uploadBtn.disabled = true;
+      logBox.textContent = "";
+      log("🚀 بدء معالجة شيت الرسائل للشهر: "+month);
+      log("📁 الملف: "+file.name+" | المنصة: "+plat);
+
+      try{
+        const rows = await readFileSmart(file);
+        log("📊 عدد الصفوف المقروءة: "+rows.length);
+        if(rows.length === 0){
+          log("⚠ الملف فاضي.");
+          uploadBtn.disabled = false;
+          return;
+        }
+
+        const coll = collection(db,"analytics",month,"messages_raw");
+        let ok=0,fail=0;
+
+        for(const r of rows){
+          try{
+            const campaign = getField(r,["Campaign Name","Campaign name","Campaign","الحملة"]);
+            const adset    = getField(r,["Ad set name","Ad Set Name","Ad Squad","مجموعة إعلانية"]);
+            const ad       = getField(r,["Ad Name","Ad name","Ad","الإعلان"]);
+
+            const spend   = getNumField(r,["Amount spent (SAR)","Amount spent","Spend","الإنفاق"]);
+            const impr    = getNumField(r,["Impressions","الانطباعات","مرات الظهور"]);
+            const results = getNumField(r,["Results","النتائج","Messages","Conversations","Leads"]);
+            const cpr     = getNumField(r,["Cost per results","Cost per result","CPL","Cost per message","Cost per conversation"]);
+            const conv    = (impr && results) ? (results/impr*100) : null;
+
+            const payload = {
+              Platform: plat,
+              CampaignName: campaign || "(بدون اسم حملة)",
+              AdSetName: adset || "",
+              AdName: ad || "",
+              Spend: spend ?? 0,
+              Impressions: impr ?? 0,
+              Leads: results ?? 0,
+              CostPerLead: cpr,
+              CTR: null,
+              ConversionRate: conv,
+              ResultType: "Messages",
+              monthKey: month,
+              source: "messages-upload-mobile",
+              createdAt: serverTimestamp()
+            };
+
+            await addDoc(coll,payload);
+            ok++;
+          }catch(e){
+            fail++;
+            log("❌ خطأ في صف: "+e.message);
+          }
+        }
+
+        log("✅ تم الرفع.");
+        log("✔ صفوف ناجحة: "+ok+" | ❌ صفوف فاشلة: "+fail);
+
+      }catch(err){
+        console.error(err);
+        log("❌ خطأ عام: "+err.message);
+      }finally{
+        uploadBtn.disabled = false;
+      }
+    };
+  </script>
+
+  <!-- Bottom nav click logic -->
+  <script>
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(function (item) {
+      item.addEventListener('click', function () {
+        // شيل Active من الكل
+        document.querySelectorAll('.bottom-nav .nav-item')
+          .forEach(function (el) { el.classList.remove('active'); });
+
+        // حط Active على اللي اتداس عليه
+        item.classList.add('active');
+
+        // نص الزرار
+        let text = item.innerText.trim();
+
+        if (text.includes("الداشبورد")) {
+          window.location.href = "d-mobile.html";
+        } else if (text.includes("رفع المنصات")) {
+          window.location.href = "u-mobile.html";
+        } else if (text.includes("رفع الرسائل")) {
+          window.location.href = "m-mobile.html";
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

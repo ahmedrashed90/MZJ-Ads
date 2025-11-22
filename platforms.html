@@ -1,5 +1,32 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+  <style>
+  /* شيل أي مساحة فوق التوب بار */
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* سحب التوب بار لأعلى */
+  .mzj-topbar {
+    margin-top: 0 !important;
+  }
+
+  /* في بعض التصميمات بيكون في padding لعنصر HTML نفسه */
+  html {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* إزالة أي margin من أول عنصر بعد التوب بار */
+  .app-shell,
+  .container,
+  main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+</style>
+
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>

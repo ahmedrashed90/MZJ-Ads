@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -449,108 +450,58 @@
       }
     }
   </style>
-
 <style>
-
 .mzj-topbar{
   position:sticky;
   top:0;
-  z-index:50;
+  z-index:999;
   background:#3e2420;
   color:#f9fafb;
-  box-shadow:0 10px 30px rgba(15,23,42,0.5);
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);
 }
 .mzj-topbar-inner{
-  max-width:1320px;
+  max-width:1350px;
   margin:0 auto;
-  padding:10px 16px;
+  padding:12px 18px;
   display:flex;
-  align-items:center;
   justify-content:space-between;
-  gap:12px;
+  align-items:center;
 }
-.mzj-topbar-left{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.mzj-topbar-title{
-  font-weight:800;
-  font-size:15px;
-}
-.mzj-topbar-sub{
-  font-size:11px;
-  opacity:.9;
-}
-.mzj-topbar-nav{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
+.mzj-topbar-title{font-size:16px;font-weight:800;}
+.mzj-topbar-sub{font-size:12px;opacity:.8;}
+.mzj-topbar-nav{display:flex;gap:10px;}
 .mzj-topbar-link{
+  padding:5px 14px;
   font-size:12px;
-  padding:5px 10px;
   border-radius:999px;
-  border:1px solid rgba(248,250,252,0.45);
-  color:#f9fafb;
+  border:1px solid rgba(255,255,255,.5);
+  color:#fff;
   text-decoration:none;
-  transition:.15s ease all;
+  transition:.2s;
 }
 .mzj-topbar-link:hover{
   background:#facc15;
   color:#1f2937;
   border-color:#facc15;
 }
-@media(max-width:640px){
-  .mzj-topbar-inner{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-  .mzj-topbar-nav{
-    width:100%;
-    justify-content:flex-start;
-    flex-wrap:wrap;
-  }
-}
-
-</style>
-</head>
+</style></head>
 <body>
-
-  <div class="mzj-topbar">
-    <div class="mzj-topbar-inner">
-      <div class="mzj-topbar-left">
-        <span class="mzj-topbar-title">MZJ Ads Workspace</span>
-        <span class="mzj-topbar-sub">منصة واحدة لرفع المنصات والرسائل وتحليل النتائج</span>
-      </div>
-      <nav class="mzj-topbar-nav">
-        <a href="mzj-dashboard-linked.html" class="mzj-topbar-link">الداشبورد</a>
-        <a href="mzj-platforms-linked.html" class="mzj-topbar-link">رفع المنصات</a>
-        <a href="mzj-messages-linked.html" class="mzj-topbar-link">رفع الرسائل</a>
-      </nav>
+<div class="mzj-topbar">
+  <div class="mzj-topbar-inner">
+    <div class="mzj-topbar-left">
+      <span class="mzj-topbar-title">MZJ Ads Workspace</span>
+      <span class="mzj-topbar-sub">تحكّم كامل في المنصات والرسائل والداشبورد</span>
     </div>
+    <nav class="mzj-topbar-nav">
+      <a href="mzj-dashboard-unified.html" class="mzj-topbar-link">الداشبورد</a>
+      <a href="mzj-platforms-unified.html" class="mzj-topbar-link">رفع المنصات</a>
+      <a href="mzj-messages-unified.html" class="mzj-topbar-link">رفع الرسائل</a>
+    </nav>
   </div>
-
+</div>
 
   <div class="app-shell">
-    <header class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-title">
-          MZJ Ads — Dashboard
-          <span class="topbar-tag">v3</span>
-        </div>
-        <div class="topbar-sub">
-          تحليلات مجمّعة للمنصات + حملات الرسائل — مع مقارنة شهرين وتصدير PDF / Excel
-        </div>
-      </div>
-      <div class="topbar-right">
-        <div class="chip">
-          <span class="chip-dot"></span>
-          <span>متصل بـ Firebase: mzj-ads</span>
-        </div>
-      </div>
-    </header>
-
+    
     <main class="main">
       <!-- Filters -->
       <section class="filters-shell">

@@ -514,6 +514,15 @@ body::before {
   padding: 5px 14px !important;
   font-size: 12px !important;
 }
+</style><style>
+/* === EXTRA FIX: Remove any top spacing under the topbar === */
+.app-shell, main, .main, .container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+body > *:first-child {
+    margin-top: 0 !important;
+}
 </style></head>
 <body>
 <div class="mzj-topbar">

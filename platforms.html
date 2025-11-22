@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MZJ Ads — رفع المنصات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body{font-family:Tajawal;background:#f5eee8;margin:0;padding:20px;}
+    .card{background:#fff;border-radius:14px;padding:20px;max-width:750px;margin:auto;
+          box-shadow:0 10px 25px rgba(0,0,0,.1);border:1px solid #e5e7eb;}
+    h2{margin-top:0;color:#3e2420;}
+    label{font-weight:600;margin-bottom:6px;display:block;color:#3e2420;font-size:14px;}
+    input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;
+                 margin-bottom:15px;font-family:inherit;font-size:13px;background:#fafafa;}
+    button{padding:10px 18px;border:none;border-radius:999px;background:#3e2420;
+           color:#fff;font-weight:700;cursor:pointer;font-size:13px;
+           box-shadow:0 8px 18px rgba(62,36,32,.35);}
+    button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
+    button:not(:disabled):hover{background:#2b1612;}
+    small{display:block;font-size:11px;color:#6b7280;margin-top:-8px;margin-bottom:10px;}
+    #log{background:#020617;color:#e5e7eb;padding:12px;border-radius:8px;
+         font-size:12px;height:260px;overflow:auto;white-space:pre-wrap;
+         font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .tag{display:inline-flex;gap:6px;align-items:center;font-size:11px;color:#4b5563;margin-bottom:10px;}
+    .tag-dot{width:8px;height:8px;border-radius:999px;background:#22c55e;}
+  </style>
+
+<style>
+
+.mzj-topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:#3e2420;
+  color:#f9fafb;
+  box-shadow:0 10px 30px rgba(15,23,42,0.5);
+}
+.mzj-topbar-inner{
+  max-width:1320px;
+  margin:0 auto;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.mzj-topbar-left{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.mzj-topbar-title{
+  font-weight:800;
+  font-size:15px;
+}
+.mzj-topbar-sub{
+  font-size:11px;
+  opacity:.9;
+}
+.mzj-topbar-nav{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.mzj-topbar-link{
+  font-size:12px;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid rgba(248,250,252,0.45);
+  color:#f9fafb;
+  text-decoration:none;
+  transition:.15s ease all;
+}
+.mzj-topbar-link:hover{
+  background:#facc15;
+  color:#1f2937;
+  border-color:#facc15;
+}
+@media(max-width:640px){
+  .mzj-topbar-inner{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .mzj-topbar-nav{
+    width:100%;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+}
+
+</style>
+</head>
+<body>
+
+  <div class="mzj-topbar">
+    <div class="mzj-topbar-inner">
+      <div class="mzj-topbar-left">
+        <span class="mzj-topbar-title">MZJ Ads Workspace</span>
+        <span class="mzj-topbar-sub">منصة واحدة لرفع المنصات والرسائل وتحليل النتائج</span>
+      </div>
+      <nav class="mzj-topbar-nav">
+        <a href="mzj-dashboard-linked.html" class="mzj-topbar-link">الداشبورد</a>
+        <a href="mzj-platforms-linked.html" class="mzj-topbar-link">رفع المنصات</a>
+        <a href="mzj-messages-linked.html" class="mzj-topbar-link">رفع الرسائل</a>
+      </nav>
+    </div>
+  </div>
+
+
+  <div class="card">
+    <div class="tag"><span class="tag-dot"></span><span>MZJ Ads — رفع بيانات المنصات (Meta / TikTok / Snap)</span></div>
+    <h2>رفع شيت المنصات (أداء الإعلانات العام)</h2>
+
+    <label>الشهر</label>
+    <input type="month" id="month"/>
+    <small>هيتخزن في: analytics / {"{الشهر}"} / platforms_raw</small>
+
+    <label>المنصة</label>
+    <select id="platform">
+      <option value="Meta">Meta (Facebook / Instagram)</option>
+      <option value="TikTok">TikTok</option>
+      <option value="Snapchat">Snapchat</option>
+      <option value="Other">منصة أخرى</option>
+    </select>
+
+    <label>ملف المنصات (CSV أو Excel)</label>
+    <input type="file" id="file" accept=".csv,.xlsx,.xls"/>
+    <small>شيت فيه بيانات الإنفاق والظهور والنتائج (أي فورمات… هنحاول نقرّاه ونظبطه).</small>
+
+    <button id="uploadBtn">رفع الشيت ومعالجته</button>
+
+    <h3 style="margin-top:18px;margin-bottom:8px;font-size:14px;color:#111827;">اللوج / اللي بيحصل في الخلفية</h3>
+    <div id="log"></div>
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDh7ofrYeZ_KWlk7NJmBuZw0NLm5xkNBks",
+  authDomain: "mzj-ads.firebaseapp.com",
+  projectId: "mzj-ads",
+  storageBucket: "mzj-ads.firebasestorage.app",
+  messagingSenderId: "830896442086",
+  appId: "1:830896442086:web:f42e7329bd3a8400a90927"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const monthInput = document.getElementById("month");
+const fileInput  = document.getElementById("file");
+const uploadBtn  = document.getElementById("uploadBtn");
+const logBox     = document.getElementById("log");
+const platformSel= document.getElementById("platform");
+
+function log(txt){
+  const now = new Date();
+  const time = now.toISOString().split("T")[1].split(".")[0];
+  logBox.textContent += "["+time+"] "+txt+"\\n";
+  logBox.scrollTop = logBox.scrollHeight;
+  console.log(txt);
+}
+
+async function readFileSmart(file){
+  const buffer = await file.arrayBuffer();
+  const name   = file.name.toLowerCase();
+  const isCsv  = name.endsWith(".csv");
+
+  if(!isCsv){
+    log("📄 ملف Excel (XLS/XLSX) — قراءة بصيغة array");
+    const wb = XLSX.read(buffer,{ type:"array" });
+    const sheet = wb.SheetNames[0];
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval:"", raw:true });
+    return rows;
+  }
+
+  const bytes = new Uint8Array(buffer);
+  let text;
+  log("📄 ملف CSV — محاولة اكتشاف الترميز (UTF-8 / UTF-16 / Windows-1256)...");
+
+  if(bytes[0] === 0xFF && bytes[1] === 0xFE){
+    log("🔎 UTF-16 LE");
+    text = new TextDecoder("utf-16le").decode(buffer);
+  }else if(bytes[0] === 0xFE && bytes[1] === 0xFF){
+    log("🔎 UTF-16 BE");
+    text = new TextDecoder("utf-16be").decode(buffer);
+  }else{
+    try{
+      log("🔎 تجربة UTF-8");
+      text = new TextDecoder("utf-8").decode(buffer);
+      if(text.includes("Ù") || text.includes("Ø") || text.includes("Ð")){
+        log("⚠ العربي بايظ… إعادة القراءة windows-1256");
+        text = new TextDecoder("windows-1256").decode(buffer);
+      }
+    }catch(e){
+      log("⚠ فشل UTF-8… استخدام windows-1256");
+      text = new TextDecoder("windows-1256").decode(buffer);
+    }
+  }
+
+  const wb = XLSX.read(text,{ type:"string" });
+  const sheet = wb.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval:"", raw:true });
+  return rows;
+}
+
+function getField(row,names){
+  for(const n of names){
+    if(Object.prototype.hasOwnProperty.call(row,n) && row[n] !== "") return row[n];
+  }
+  return "";
+}
+
+function getNumField(row,names){
+  const v = getField(row,names);
+  if(v === "" || v === null || v === undefined) return null;
+  const n = Number(v);
+  return isNaN(n) ? null : n;
+}
+
+uploadBtn.onclick = async () => {
+  const month = monthInput.value;
+  const file  = fileInput.files[0];
+  const plat  = platformSel.value;
+
+  if(!month){ alert("اختار الشهر يا خال 🙏"); return; }
+  if(!file){ alert("اختار الشيت الأول 🙏"); return; }
+
+  uploadBtn.disabled = true;
+  logBox.textContent = "";
+  log("🚀 بدء معالجة شيت المنصات للشهر: "+month);
+  log("📁 الملف: "+file.name+" | المنصة: "+plat);
+
+  try{
+    const rows = await readFileSmart(file);
+    log("📊 عدد الصفوف المقروءة: "+rows.length);
+    if(rows.length === 0){
+      log("⚠ الملف فاضي.");
+      uploadBtn.disabled = false;
+      return;
+    }
+
+    const coll = collection(db,"analytics",month,"platforms_raw");
+    let ok=0,fail=0;
+
+    for(const r of rows){
+      try{
+        const campaign = getField(r,["Campaign Name","Campaign name","Campaign","الحملة"]);
+        const adset    = getField(r,["Ad set name","Ad Set Name","Ad Squad","مجموعة إعلانية"]);
+        const ad       = getField(r,["Ad Name","Ad name","Ad","الإعلان"]);
+
+        const spend  = getNumField(r,["Amount spent (SAR)","Amount spent","Spend","الإنفاق"]);
+        const impr   = getNumField(r,["Impressions","الانطباعات","مرات الظهور"]);
+        const clicks = getNumField(r,["Clicks","Link clicks","Swipe Ups","Swipe ups","النقرات"]);
+        const ctr    = getNumField(r,["CTR (%)","CTR","نسبة النقر"]);
+        const cpc    = getNumField(r,["CPC (cost per link click)","CPC","Cost per click (all)"]);
+        const cpm    = getNumField(r,["CPM (cost per 1,000 impressions)","CPM","eCPM"]);
+        const leads  = getNumField(r,["Leads","Results","النتائج","Conversions"]);
+        const cpl    = getNumField(r,["Cost per result","Cost per results","Cost per Lead","CPL","eCPL"]);
+        let resultType = getField(r,["Result Type","Result indicator","هدف النتيجة"]);
+
+        const payload = {
+          Platform: plat,
+          CampaignName: campaign || "(بدون اسم حملة)",
+          AdSetName: adset || "",
+          AdName: ad || "",
+          Spend: spend ?? 0,
+          Impressions: impr ?? 0,
+          Clicks: clicks ?? 0,
+          CTR: ctr,
+          CPC: cpc,
+          CPM: cpm,
+          Leads: leads ?? 0,
+          CostPerLead: cpl,
+          ResultType: resultType || "",
+          monthKey: month,
+          source: "platforms-upload",
+          createdAt: serverTimestamp()
+        };
+
+        await addDoc(coll,payload);
+        ok++;
+      }catch(e){
+        fail++;
+        log("❌ خطأ في صف: "+e.message);
+      }
+    }
+
+    log("✅ تم الرفع.");
+    log("✔ صفوف ناجحة: "+ok+" | ❌ صفوف فاشلة: "+fail);
+
+  }catch(err){
+    console.error(err);
+    log("❌ خطأ عام: "+err.message);
+  }finally{
+    uploadBtn.disabled = false;
+  }
+};
+</script>
+</body>
+</html>

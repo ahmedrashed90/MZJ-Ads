@@ -1,19 +1,20 @@
 
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MZJ Ads — لوحة تحليلات الإعلانات</title>
+  <meta charset="UTF-8" />
+  <title>MZJ Ads — Dashboard v2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <!-- Tajawal Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- XLSX for Excel export -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     :root{
@@ -23,7 +24,6 @@
       --text:#0f172a;
       --muted:#64748b;
       --line:#e2e8f0;
-      --card:#ffffff;
       --radius:18px;
     }
     *{box-sizing:border-box;}
@@ -33,101 +33,90 @@
       background:radial-gradient(circle at top left,#fef3c7,#f5ebe2 40%,#ffffff 80%);
       color:var(--text);
     }
-    .app-shell{
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-    }
-    .topbar{
+
+    /* Top unified bar */
+    .mzj-topbar{
       position:sticky;
       top:0;
-      z-index:20;
-      background:rgba(62,36,32,0.98);
-      backdrop-filter:blur(14px);
+      z-index:999;
+      background:#3e2420;
       color:#f9fafb;
-      padding:10px 22px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    }
+    .mzj-topbar-inner{
+      max-width:1350px;
+      margin:0 auto;
+      padding:10px 18px;
       display:flex;
-      align-items:center;
       justify-content:space-between;
-      box-shadow:0 10px 30px rgba(15,23,42,0.55);
-    }
-    .topbar-left{
-      display:flex;
-      flex-direction:column;
-      gap:3px;
-    }
-    .topbar-title{
-      font-size:19px;
-      font-weight:800;
-      letter-spacing:.02em;
-      display:flex;
       align-items:center;
-      gap:8px;
+      gap:12px;
     }
-    .topbar-tag{
-      font-size:11px;
-      padding:2px 8px;
+    .mzj-topbar-title{font-size:16px;font-weight:800;}
+    .mzj-topbar-sub{font-size:12px;opacity:.8;}
+    .mzj-topbar-nav{display:flex;gap:10px;flex-wrap:wrap;}
+    .mzj-topbar-link{
+      padding:5px 14px;
+      font-size:12px;
       border-radius:999px;
+      border:1px solid rgba(255,255,255,.5);
+      color:#fff;
+      text-decoration:none;
+      transition:.2s;
+    }
+    .mzj-topbar-link:hover{
       background:#facc15;
       color:#1f2937;
-      font-weight:700;
+      border-color:#facc15;
     }
-    .topbar-sub{
-      font-size:12px;
-      opacity:.9;
+
+    .app{
+      max-width:1200px;
+      margin:18px auto 24px;
+      padding:0 16px 24px;
     }
-    .topbar-right{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:11px;
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.9fr) minmax(0,1.2fr);
+      gap:14px;
     }
-    .chip{
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid rgba(248,250,252,0.35);
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      cursor:default;
+    @media (max-width: 960px){
+      .layout{
+        grid-template-columns:1fr;
+      }
     }
-    .chip-dot{
-      width:7px;
-      height:7px;
-      border-radius:999px;
-      background:#22c55e;
-    }
-    .main{
-      flex:1;
-      max-width:1320px;
-      margin:0 auto;
-      width:100%;
-      padding:18px 18px 20px;
-    }
-    /* Filters row */
-    .filters-shell{
-      background:rgba(255,255,255,0.95);
+
+    .card{
+      background:#fff8ef;
       border-radius:var(--radius);
-      padding:12px 14px;
       border:1px solid rgba(226,232,240,0.9);
-      box-shadow:0 18px 45px rgba(15,23,42,0.12);
-      margin-bottom:16px;
+      box-shadow:0 14px 32px rgba(15,23,42,0.12);
+      padding:14px 16px 16px;
+      margin-bottom:14px;
+    }
+    .card-header{
       display:flex;
-      flex-direction:column;
+      justify-content:space-between;
+      align-items:flex-start;
       gap:10px;
+      margin-bottom:10px;
     }
-    .filters-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:12px;
-      align-items:flex-end;
+    .card-title{
+      font-size:15px;
+      font-weight:800;
+      color:var(--brown);
     }
+    .card-sub{
+      font-size:12px;
+      color:var(--muted);
+    }
+
     .field{
       display:flex;
       flex-direction:column;
       gap:4px;
       font-size:13px;
-      min-width:160px;
     }
     .field label{
       font-weight:600;
@@ -137,7 +126,7 @@
       font-size:11px;
       color:var(--muted);
     }
-    .field input[type="month"], .field select{
+    .field input[type="month"]{
       padding:7px 11px;
       border-radius:999px;
       border:1px solid var(--line);
@@ -147,18 +136,18 @@
       outline:none;
       transition:.12s ease border-color,.12s ease box-shadow,.12s ease background;
     }
-    .field input[type="month"]:focus,
-    .field select:focus{
+    .field input[type="month"]:focus{
       border-color:var(--beige);
       box-shadow:0 0 0 1px rgba(188,143,116,0.5);
       background:#ffffff;
     }
+
     .btn{
-      padding:8px 16px;
+      padding:7px 14px;
       border-radius:999px;
       border:none;
       cursor:pointer;
-      font-size:13px;
+      font-size:12px;
       font-weight:700;
       display:inline-flex;
       align-items:center;
@@ -168,18 +157,11 @@
     .btn-primary{
       background:var(--brown);
       color:#ffffff;
-      box-shadow:0 12px 26px rgba(62,36,32,0.55);
+      box-shadow:0 8px 20px rgba(62,36,32,0.5);
     }
-    .btn-primary:not(:disabled):hover{
+    .btn-primary:hover{
       background:#2e1714;
       transform:translateY(-1px);
-      box-shadow:0 18px 34px rgba(15,23,42,0.6);
-    }
-    .btn-primary:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-      box-shadow:none;
-      transform:none;
     }
     .btn-ghost{
       background:transparent;
@@ -190,512 +172,345 @@
       border-style:solid;
       background:#f9fafb;
     }
-    .filters-footer{
+
+    .status-line{
       display:flex;
+      align-items:center;
+      justify-content:space-between;
       flex-wrap:wrap;
       gap:8px;
-      justify-content:space-between;
-      align-items:center;
+      margin-top:8px;
       font-size:11px;
       color:var(--muted);
     }
-    .status-pill{
+    .pill{
       display:inline-flex;
       align-items:center;
       gap:6px;
-      padding:4px 10px;
+      padding:3px 9px;
       border-radius:999px;
       font-size:11px;
+      border:1px solid rgba(148,163,184,0.8);
     }
-    .status-ok{
+    .pill-ok{
       background:#ecfdf3;
+      border-color:#bbf7d0;
       color:#166534;
     }
-    .status-bad{
+    .pill-bad{
       background:#fef2f2;
+      border-color:#fecaca;
       color:#991b1b;
     }
-    .status-dot{
+    .pill-dot{
       width:7px;
       height:7px;
       border-radius:999px;
       background:currentColor;
     }
 
-    /* KPI cards */
-    .grid-kpi{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:12px;
-      margin-bottom:16px;
-    }
-    @media(max-width:1024px){.grid-kpi{grid-template-columns:repeat(2,minmax(0,1fr));}}
-    @media(max-width:640px){.grid-kpi{grid-template-columns:1fr;}}
-
-    .kpi-card{
-      position:relative;
-      overflow:hidden;
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:10px 12px;
-      border:1px solid rgba(226,232,240,0.95);
-      box-shadow:0 14px 32px rgba(15,23,42,0.12);
-    }
-    .kpi-card::before{
-      content:"";
-      position:absolute;
-      inset:auto -40px 0;
-      height:42%;
-      background:linear-gradient(135deg,rgba(188,143,116,0.18),rgba(59,130,246,0.03));
-      opacity:0.75;
-      pointer-events:none;
-    }
-    .kpi-label{
-      font-size:11px;
-      color:var(--muted);
-      margin-bottom:2px;
-    }
-    .kpi-main-row{
-      display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      gap:6px;
-      margin-bottom:2px;
-    }
-    .kpi-value{
-      font-size:19px;
-      font-weight:800;
-      color:var(--brown);
-    }
-    .kpi-delta{
-      font-size:11px;
-      font-weight:600;
-      display:inline-flex;
-      align-items:center;
-      gap:3px;
-    }
-    .kpi-delta.up{color:#16a34a;}
-    .kpi-delta.down{color:#dc2626;}
-    .kpi-delta.neutral{color:var(--muted);}
-    .kpi-sub{
-      font-size:11px;
-      color:var(--muted);
-    }
-
-    /* Platform mini-cards */
-    .platform-grid{
+    .kpi-grid{
       display:grid;
       grid-template-columns:repeat(4,minmax(0,1fr));
       gap:10px;
-      margin-bottom:16px;
+      margin-top:8px;
     }
-    @media(max-width:1024px){.platform-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-    @media(max-width:640px){.platform-grid{grid-template-columns:1fr;}}
-
-    .platform-card{
-      background:rgba(255,255,255,0.96);
+    @media (max-width: 960px){
+      .kpi-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+    .kpi-card{
       border-radius:14px;
       padding:8px 10px;
-      border:1px solid rgba(226,232,240,0.9);
-      box-shadow:0 10px 22px rgba(15,23,42,0.08);
+      background:#ffffff;
+      border:1px solid #e2e8f0;
+      box-shadow:0 6px 14px rgba(15,23,42,.06);
       font-size:11px;
     }
-    .platform-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:2px;
+    .kpi-label{
+      color:#64748b;
+      margin-bottom:3px;
+    }
+    .kpi-value{
+      font-weight:800;
+      font-size:15px;
+      color:var(--brown);
+    }
+    .kpi-tag{
+      font-size:10px;
+      color:#94a3b8;
+      margin-top:3px;
+    }
+
+    .platform-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+    }
+    @media (max-width: 960px){
+      .platform-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+    }
+    @media (max-width: 640px){
+      .platform-grid{
+        grid-template-columns:repeat(1,minmax(0,1fr));
+      }
+    }
+    .platform-card{
+      border-radius:14px;
+      padding:8px 10px;
+      background:#f9fafb;
+      border:1px solid #e5e7eb;
+      font-size:11px;
     }
     .platform-name{
       font-weight:700;
-      color:var(--brown);
-      font-size:12px;
+      margin-bottom:4px;
+      color:#111827;
     }
-    .platform-chip{
-      padding:2px 7px;
-      border-radius:999px;
-      font-size:10px;
-      font-weight:600;
-    }
-    .platform-meta{background:#eff6ff;color:#1d4ed8;}
-    .platform-tiktok{background:#fce7f3;color:#db2777;}
-    .platform-snap{background:#fef9c3;color:#92400e;}
-    .platform-other{background:#e5e7eb;color:#111827;}
-    .platform-body{
+    .platform-row{
       display:flex;
       justify-content:space-between;
-      gap:6px;
+      font-size:11px;
+      color:#6b7280;
     }
-    .platform-metric-label{color:var(--muted);font-size:10px;}
-    .platform-metric-value{font-weight:700;font-size:12px;}
-
-    /* Layout main */
-    .layout-main{
-      display:grid;
-      grid-template-columns:minmax(0,2.2fr) minmax(0,1.5fr);
-      gap:14px;
-    }
-    @media(max-width:1024px){.layout-main{grid-template-columns:1fr;}}
-
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      padding:12px 14px 10px;
-      border:1px solid rgba(226,232,240,0.95);
-      box-shadow:0 14px 32px rgba(15,23,42,0.12);
-    }
-    .card-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:8px;
-      gap:8px;
-    }
-    .card-title{
-      font-size:14px;
+    .platform-row span:nth-child(2){
       font-weight:700;
-      color:var(--brown);
+      color:#111827;
     }
-    .card-sub{
-      font-size:11px;
-      color:var(--muted);
-    }
-    .pill-tabs{
-      display:inline-flex;
-      border-radius:999px;
-      background:#f1f5f9;
-      padding:2px;
-      border:1px solid #e2e8f0;
-      font-size:11px;
-      gap:2px;
-    }
-    .pill-tab{
-      border-radius:999px;
-      padding:4px 9px;
-      cursor:pointer;
-      border:none;
-      background:transparent;
-      color:#64748b;
-      font-weight:600;
-    }
-    .pill-tab.active{
-      background:#ffffff;
-      color:#0f172a;
-      box-shadow:0 1px 3px rgba(15,23,42,0.28);
-    }
-    canvas{max-width:100%;}
 
-    /* Table */
-    .table-wrapper{
-      max-height:360px;
-      overflow:auto;
-      margin-top:4px;
+    .charts-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:10px;
     }
-    table{
+    @media (max-width: 960px){
+      .charts-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .chart-wrapper{
+      background:#ffffff;
+      border-radius:14px;
+      border:1px solid #e5e7eb;
+      padding:10px;
+      min-height:230px;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .chart-title{
+      font-size:12px;
+      font-weight:600;
+      color:#111827;
+    }
+    .chart-sub{
+      font-size:11px;
+      color:#9ca3af;
+    }
+    canvas{
+      max-width:100%;
+    }
+
+    .compare-table{
       width:100%;
       border-collapse:collapse;
       font-size:11px;
-      min-width:740px;
+      margin-top:6px;
     }
-    th,td{
-      padding:6px 8px;
-      border-bottom:1px solid #e2e8f0;
-      white-space:nowrap;
+    .compare-table th,
+    .compare-table td{
+      padding:4px 6px;
+      border-bottom:1px solid #e5e7eb;
       text-align:right;
+      white-space:nowrap;
     }
-    th{
-      background:#f8fafc;
+    .compare-table th{
+      background:#f9fafb;
+      color:#4b5563;
       font-weight:700;
-      color:#475569;
-      position:sticky;
-      top:0;
-      z-index:1;
-    }
-    tr:hover td{
-      background:#f1f5f9;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      padding:2px 7px;
-      border-radius:999px;
-      font-size:10px;
-      font-weight:600;
-    }
-    .badge-green{background:#ecfdf3;color:#166534;}
-    .badge-red{background:#fef2f2;color:#b91c1c;}
-    .badge-amber{background:#fffbeb;color:#92400e;}
-
-    .empty-state{
-      padding:18px 12px;
-      font-size:12px;
-      color:var(--muted);
-      text-align:center;
     }
 
-    .footer{
-      padding:10px 16px 16px;
+    .log-area{
+      max-height:200px;
+      overflow:auto;
+      padding:8px 10px;
+      border-radius:12px;
+      background:#f9fafb;
+      border:1px dashed #e2e8f0;
       font-size:11px;
-      color:#94a3b8;
-      text-align:center;
+      line-height:1.7;
+      direction:ltr;
+      text-align:left;
     }
+    .log-line-ok{color:#16a34a;}
+    .log-line-warn{color:#ca8a04;}
+    .log-line-err{color:#dc2626;}
 
-    /* Print (for PDF export via browser) */
-    @media print{
-      .topbar, .filters-shell, .footer{display:none!important;}
-      body{background:#ffffff;}
-      .main{padding:0;margin:0;}
-      .card, .kpi-card, .platform-card{
-        box-shadow:none!important;
-        border-color:#cbd5e1!important;
-      }
-    }
   </style>
-<style>
-.mzj-topbar{
-  position:sticky;
-  top:0;
-  z-index:999;
-  background:#3e2420;
-  color:#f9fafb;
-  box-shadow:0 4px 20px rgba(0,0,0,0.4);
-}
-.mzj-topbar-inner{
-  max-width:1350px;
-  margin:0 auto;
-  padding:12px 18px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.mzj-topbar-title{font-size:16px;font-weight:800;}
-.mzj-topbar-sub{font-size:12px;opacity:.8;}
-.mzj-topbar-nav{display:flex;gap:10px;}
-.mzj-topbar-link{
-  padding:5px 14px;
-  font-size:12px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.5);
-  color:#fff;
-  text-decoration:none;
-  transition:.2s;
-}
-.mzj-topbar-link:hover{
-  background:#facc15;
-  color:#1f2937;
-  border-color:#facc15;
-}
-</style><style>
-/* === Unified Topbar Tight Fix === */
-html, body {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-body::before {
-  content: "";
-  display: block;
-  height: 0px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.mzj-topbar {
-  margin-top: 0 !important;
-  top: 0 !important;
-  padding: 12px 0 !important;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.32) !important;
-}
-
-.mzj-topbar-inner {
-  padding: 0 20px !important;
-}
-
-.mzj-topbar-link {
-  padding: 5px 14px !important;
-  font-size: 12px !important;
-}
-</style><style>
-/* === EXTRA FIX: Remove any top spacing under the topbar === */
-.app-shell, main, .main, .container {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-body > *:first-child {
-    margin-top: 0 !important;
-}
-</style></head>
+</head>
 <body>
-<div class="mzj-topbar">
-  <div class="mzj-topbar-inner">
-    <div class="mzj-topbar-left">
-      <span class="mzj-topbar-title">MZJ Ads Workspace</span>
-      <span class="mzj-topbar-sub">منصة واحدة لرفع المنصات والرسائل وتحليل النتائج</span>
+  <div class="mzj-topbar">
+    <div class="mzj-topbar-inner">
+      <div>
+        <div class="mzj-topbar-title">MZJ Ads Workspace</div>
+        <div class="mzj-topbar-sub">Dashboard v2 — نظرة عامة على META / TikTok / Snap</div>
+      </div>
+      <nav class="mzj-topbar-nav">
+        <a href="dashboard.html" class="mzj-topbar-link" style="background:#facc15;color:#1f2937;border-color:#facc15;">الداشبورد</a>
+        <a href="platforms.html" class="mzj-topbar-link">رفع المنصات</a>
+      </nav>
     </div>
-    <nav class="mzj-topbar-nav">
-      <a href="dashboard.html" class="mzj-topbar-link">الداشبورد</a>
-      <a href="platforms.html" class="mzj-topbar-link">رفع المنصات</a>
-      <a href="messages.html" class="mzj-topbar-link">رفع الرسائل</a>
-    </nav>
-  </div>
-</div>
-
-  <div class="app-shell">
-    
-    <main class="main">
-      <!-- Filters -->
-      <section class="filters-shell">
-        <div class="filters-row">
-          <div class="field">
-            <label for="monthMain">الشهر الأساسي</label>
-            <input type="month" id="monthMain"/>
-            <small>ده الشهر اللي الرسوم والجدول مبنيين عليه.</small>
-          </div>
-
-          <div class="field">
-            <label for="monthCompare">شهر المقارنة (اختياري)</label>
-            <input type="month" id="monthCompare"/>
-            <small>يظهر نسبة الزيادة/النقص في الـ KPIs.</small>
-          </div>
-
-          <div class="field">
-            <label for="sourceFilter">مصدر البيانات</label>
-            <select id="sourceFilter">
-              <option value="all">الكل (منصات + رسائل)</option>
-              <option value="platforms">المنصات فقط (platforms_raw)</option>
-              <option value="messages">الرسائل فقط (messages_raw)</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="groupBySelect">تجميع حسب</label>
-            <select id="groupBySelect">
-              <option value="CampaignName">الحملة</option>
-              <option value="AdSetName">مجموعة الإعلانات</option>
-              <option value="AdName">الإعلان</option>
-              <option value="Platform">المنصة</option>
-            </select>
-          </div>
-
-          <button id="loadBtn" class="btn btn-primary">
-            تحميل بيانات الشهر
-          </button>
-        </div>
-
-        <div class="filters-footer">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button id="exportExcelBtn" class="btn btn-ghost">تصدير Excel (الجدول الحالي)</button>
-            <button id="exportPdfBtn" class="btn btn-ghost">تصدير PDF (استخدم طباعة المتصفح)</button>
-          </div>
-          <div id="statusPill" class="status-pill status-ok" style="display:none;">
-            <span class="status-dot"></span>
-            <span id="statusText">جاهز</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- KPIs -->
-      <section class="grid-kpi">
-        <article class="kpi-card">
-          <div class="kpi-label">إجمالي الإنفاق</div>
-          <div class="kpi-main-row">
-            <div id="kpiSpend" class="kpi-value">-</div>
-            <div id="deltaSpend" class="kpi-delta neutral"></div>
-          </div>
-          <div class="kpi-sub">إجمالي الإنفاق من كل المنصات / الرسائل (ر.س)</div>
-        </article>
-        <article class="kpi-card">
-          <div class="kpi-label">إجمالي مرات الظهور (Impressions)</div>
-          <div class="kpi-main-row">
-            <div id="kpiImpr" class="kpi-value">-</div>
-            <div id="deltaImpr" class="kpi-delta neutral"></div>
-          </div>
-          <div class="kpi-sub">إجمالي مرات الظهور في الشهر المختار</div>
-        </article>
-        <article class="kpi-card">
-          <div class="kpi-label">CTR / Conversion%</div>
-          <div class="kpi-main-row">
-            <div id="kpiCtr" class="kpi-value">-</div>
-            <div id="deltaCtr" class="kpi-delta neutral"></div>
-          </div>
-          <div class="kpi-sub">CTR للحملات العادية — Conversion Rate لحملات الرسائل</div>
-        </article>
-        <article class="kpi-card">
-          <div class="kpi-label">CPC / CPL</div>
-          <div class="kpi-main-row">
-            <div id="kpiCosts" class="kpi-value">-</div>
-            <div id="deltaCosts" class="kpi-delta neutral"></div>
-          </div>
-          <div class="kpi-sub">متوسط تكلفة النقرة / المحادثة / النتيجة</div>
-        </article>
-      </section>
-
-      <!-- Platform mini cards -->
-      <section class="card" style="margin-bottom:14px;">
-        <div class="card-header">
-          <div>
-            <div class="card-title">ملخص سريع لكل منصة</div>
-            <div class="card-sub">Spend + Leads لكل منصة من الداتا الحالية (الفلتر مطبق).</div>
-          </div>
-        </div>
-        <div id="platformCards" class="platform-grid">
-          <div class="empty-state">سيتم توليد كروت المنصات بعد تحميل بيانات الشهر.</div>
-        </div>
-      </section>
-
-      <!-- Main layout: charts + table -->
-      <section class="layout-main">
-        <section class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Top 10 حسب الإنفاق</div>
-              <div id="chartMainTitle" class="card-sub">حسب الحملة</div>
-            </div>
-            <div class="pill-tabs" id="groupTabs">
-              <button class="pill-tab active" data-group="CampaignName">حملات</button>
-              <button class="pill-tab" data-group="AdSetName">Ad Sets</button>
-              <button class="pill-tab" data-group="AdName">إعلانات</button>
-              <button class="pill-tab" data-group="Platform">منصات</button>
-            </div>
-          </div>
-          <canvas id="chartTopSpend" height="230"></canvas>
-        </section>
-
-        <section class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">ملخص القنوات وأنواع النتائج</div>
-              <div class="card-sub">CTR/Conv لأهم العناصر + توزيع الإنفاق حسب المنصة ونوع النتيجة.</div>
-            </div>
-          </div>
-          <canvas id="chartCtr" height="130" style="margin-bottom:10px;"></canvas>
-          <canvas id="chartResultPie" height="160"></canvas>
-        </section>
-      </section>
-
-      <!-- Table -->
-      <section class="card" style="margin-top:14px;">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Top 50 — الجدول التفصيلي الحالي</div>
-            <div class="card-sub">يعتمد على الفلاتر الحالية (مصدر البيانات + التجميع).</div>
-          </div>
-        </div>
-        <div id="tableContainer" class="table-wrapper">
-          <div class="empty-state">اختار شهر واضغط "تحميل بيانات الشهر".</div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      MZJ Ads Workspace — لوحة موحدة لتحليل المنصات وحملات الرسائل مع مقارنة شهرين وتصدير التقارير.
-    </footer>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <main class="app">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">اختيار الفترة</div>
+          <div class="card-sub">
+            اختار شهر أساسي، وممكن تضيف شهر مقارنة اختياري. الداشبورد بتقرأ من
+            <code>analytics / YYYY-MM / meta_raw | tiktok_raw | snap_raw</code>
+            وتعتمد على <strong>norm</strong> اللي اتخزن من صفحة رفع المنصات.
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          <button id="loadBtn" class="btn btn-primary">تحميل بيانات الشهر</button>
+          <button id="exportCsvBtn" class="btn btn-ghost">تصدير ملخص إلى CSV (Excel)</button>
+        </div>
+      </div>
 
+      <div class="layout">
+        <div>
+          <div class="field">
+            <label for="monthMain">شهر رئيسي</label>
+            <input type="month" id="monthMain" />
+            <small>مثال: 2025-11 — سيُستخدم كالمصدر الأساسي لكل الكروت والشارتات.</small>
+          </div>
+          <div class="field" style="margin-top:6px;">
+            <label for="monthCompare">شهر مقارنة (اختياري)</label>
+            <input type="month" id="monthCompare" />
+            <small>لو اخترت شهر مقارنة، هتظهر مقارنة سريعة في الجدول الصغير (إنفاق / نتائج / CTR).</small>
+          </div>
+        </div>
+
+        <div>
+          <div class="field">
+            <label>حالة الداتا</label>
+            <div id="statusPill" class="pill">
+              <span class="pill-dot"></span>
+              <span id="statusText">في انتظار اختيار شهر والدوس على تحميل.</span>
+            </div>
+          </div>
+          <div class="field" style="margin-top:6px;">
+            <label>ملخص شهرين (لو محدد مقارنة)</label>
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th>الشهر</th>
+                  <th>إجمالي الإنفاق</th>
+                  <th>إجمالي النتائج</th>
+                  <th>CTR تقريبي</th>
+                </tr>
+              </thead>
+              <tbody id="compareBody">
+                <tr><td colspan="4" style="text-align:center;color:#9ca3af;">لسه مفيش مقارنة.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">ملخص عام — كل المنصات</div>
+          <div class="card-sub">أرقام إجمالية مجمّعة من META + TikTok + Snap حسب norm.</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">إجمالي الإنفاق (كل المنصات)</div>
+          <div id="kpiTotalSpend" class="kpi-value">-</div>
+          <div class="kpi-tag">العملة حسب الشيتات (SAR أو غيره).</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">إجمالي النتائج (كل الأهداف)</div>
+          <div id="kpiTotalResults" class="kpi-value">-</div>
+          <div class="kpi-tag">يضم رسائل + مكالمات + ليدز + غيره.</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">رسائل + مكالمات + دايركت</div>
+          <div id="kpiMessages" class="kpi-value">-</div>
+          <div class="kpi-tag">sheetType = messages / calls / direct.</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">ليدز (نماذج / تحويلات)</div>
+          <div id="kpiLeads" class="kpi-value">-</div>
+          <div class="kpi-tag">sheetType = leads.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <div class="platform-grid">
+          <div class="platform-card">
+            <div class="platform-name">META</div>
+            <div class="platform-row"><span>الإنفاق:</span><span id="metaSpend">-</span></div>
+            <div class="platform-row"><span>النتائج:</span><span id="metaResults">-</span></div>
+            <div class="platform-row"><span>CTR تقريبي:</span><span id="metaCtr">-</span></div>
+          </div>
+          <div class="platform-card">
+            <div class="platform-name">TikTok</div>
+            <div class="platform-row"><span>الإنفاق:</span><span id="ttSpend">-</span></div>
+            <div class="platform-row"><span>النتائج:</span><span id="ttResults">-</span></div>
+            <div class="platform-row"><span>CTR تقريبي:</span><span id="ttCtr">-</span></div>
+          </div>
+          <div class="platform-card">
+            <div class="platform-name">Snapchat</div>
+            <div class="platform-row"><span>الإنفاق:</span><span id="snapSpend">-</span></div>
+            <div class="platform-row"><span>النتائج:</span><span id="snapResults">-</span></div>
+            <div class="platform-row"><span>CTR تقريبي:</span><span id="snapCtr">-</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-wrapper">
+          <div class="chart-title">توزيع الإنفاق حسب المنصة</div>
+          <div class="chart-sub">META vs TikTok vs Snap — إجمالي الإنفاق.</div>
+          <canvas id="chartSpendPlatform"></canvas>
+        </div>
+        <div class="chart-wrapper">
+          <div class="chart-title">توزيع النتائج حسب نوع الهدف</div>
+          <div class="chart-sub">رسائل/مكالمات، ليدز، مشاهدات، تفاعل عام.</div>
+          <canvas id="chartResultsByType"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Log / سجل القراءة من Firestore</div>
+          <div class="card-sub">للمراجعة السريعة — أي خطأ أو Collection فاضية هيبان هنا.</div>
+        </div>
+      </div>
+      <div id="logArea" class="log-area"></div>
+      <div class="status-line">
+        <div>الداشبورد تعتمد فقط على norm من analytics. لو مفيش داتا، راجع صفحة رفع المنصات.</div>
+        <div>Project: <code>mzj-ads / analytics</code></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyDh7ofrYeZ_KWlk7NJmBuZw0NLm5xkNBks",
       authDomain: "mzj-ads.firebaseapp.com",
@@ -704,512 +519,382 @@ body > *:first-child {
       messagingSenderId: "830896442086",
       appId: "1:830896442086:web:f42e7329bd3a8400a90927"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
-
+    // DOM refs
     const monthMain      = document.getElementById("monthMain");
     const monthCompare   = document.getElementById("monthCompare");
-    const sourceFilter   = document.getElementById("sourceFilter");
-    const groupBySelect  = document.getElementById("groupBySelect");
     const loadBtn        = document.getElementById("loadBtn");
+    const exportCsvBtn   = document.getElementById("exportCsvBtn");
     const statusPill     = document.getElementById("statusPill");
     const statusText     = document.getElementById("statusText");
-    const exportExcelBtn = document.getElementById("exportExcelBtn");
-    const exportPdfBtn   = document.getElementById("exportPdfBtn");
+    const compareBody    = document.getElementById("compareBody");
+    const logArea        = document.getElementById("logArea");
 
-    const kpiSpend   = document.getElementById("kpiSpend");
-    const kpiImpr    = document.getElementById("kpiImpr");
-    const kpiCtr     = document.getElementById("kpiCtr");
-    const kpiCosts   = document.getElementById("kpiCosts");
+    const kpiTotalSpend  = document.getElementById("kpiTotalSpend");
+    const kpiTotalResults= document.getElementById("kpiTotalResults");
+    const kpiMessages    = document.getElementById("kpiMessages");
+    const kpiLeads       = document.getElementById("kpiLeads");
 
-    const deltaSpend = document.getElementById("deltaSpend");
-    const deltaImpr  = document.getElementById("deltaImpr");
-    const deltaCtr   = document.getElementById("deltaCtr");
-    const deltaCosts = document.getElementById("deltaCosts");
+    const metaSpendEl    = document.getElementById("metaSpend");
+    const metaResultsEl  = document.getElementById("metaResults");
+    const metaCtrEl      = document.getElementById("metaCtr");
+    const ttSpendEl      = document.getElementById("ttSpend");
+    const ttResultsEl    = document.getElementById("ttResults");
+    const ttCtrEl        = document.getElementById("ttCtr");
+    const snapSpendEl    = document.getElementById("snapSpend");
+    const snapResultsEl  = document.getElementById("snapResults");
+    const snapCtrEl      = document.getElementById("snapCtr");
 
-    const chartMainTitle = document.getElementById("chartMainTitle");
-    const tableContainer = document.getElementById("tableContainer");
-    const platformCards  = document.getElementById("platformCards");
-    const groupTabs      = document.getElementById("groupTabs");
+    let chartSpendPlatform = null;
+    let chartResultsByType = null;
+    let lastAggMain = null;
+    let lastAggCompare = null;
 
-    let allMain = [];
-    let allCompare = [];
-    let chartTopSpend, chartCtr, chartResultPie;
-    let lastGrouped = [];
-    let lastGroupKey = "CampaignName";
+    function log(message, type="ok"){
+      const line = document.createElement("div");
+      if(type === "ok")   line.className = "log-line-ok";
+      if(type === "warn") line.className = "log-line-warn";
+      if(type === "err")  line.className = "log-line-err";
+      line.textContent = message;
+      logArea.appendChild(line);
+      logArea.scrollTop = logArea.scrollHeight;
+    }
 
-    function setStatus(text,type="ok"){
-      statusPill.style.display = "inline-flex";
+    function setStatus(text, type="ok"){
       statusText.textContent = text;
-      statusPill.classList.remove("status-ok","status-bad");
-      statusPill.classList.add(type==="ok" ? "status-ok" : "status-bad");
-    }
-
-    function formatNumber(num){
-      if(num==null || isNaN(num)) return "-";
-      if(num>=1_000_000) return (num/1_000_000).toFixed(1)+"M";
-      if(num>=1_000)     return (num/1_000).toFixed(1)+"K";
-      return num.toLocaleString("en-US");
-    }
-    function formatPercent(num){
-      if(num==null || isNaN(num)) return "-";
-      return num.toFixed(2)+"٪";
-    }
-    function formatDelta(curr,prev,suffix="٪"){
-      if(prev==null || isNaN(prev) || prev===0 || curr==null || isNaN(curr)){
-        return {text:"",cls:"neutral"};
+      statusPill.classList.remove("pill-ok","pill-bad");
+      if(type === "ok"){
+        statusPill.classList.add("pill-ok");
+      }else if(type === "bad"){
+        statusPill.classList.add("pill-bad");
       }
-      const diff = (curr - prev) / prev * 100;
-      const sign = diff>0 ? "+" : "";
-      const cls  = diff>0 ? "up" : (diff<0 ? "down" : "neutral");
-      return {text:`${sign}${diff.toFixed(1)}${suffix}`,cls};
     }
 
-    function filterBySource(data){
-      const mode = sourceFilter.value;
-      if(mode==="platforms") return data.filter(d=>d._src==="platform");
-      if(mode==="messages")  return data.filter(d=>d._src==="message");
-      return data;
+    function formatNumber(n){
+      if(n === null || n === undefined || isNaN(n)) return "-";
+      return n.toLocaleString("en-US",{maximumFractionDigits:1});
     }
 
-    function computeAggregates(rows, modeForCtr){
-      if(!rows || rows.length===0){
-        return {totalSpend:0,totalImpr:0,totalClicks:0,totalLeads:0,avgCtr:null,avgCpc:null,avgCpl:null};
+    function toNumber(val){
+      if(val === null || val === undefined) return 0;
+      if(typeof val === "number") return val;
+      const cleaned = String(val).replace(/,/g,"").trim();
+      const n = parseFloat(cleaned);
+      return isNaN(n) ? 0 : n;
+    }
+
+    async function fetchOneCollection(monthKey, colName){
+      try{
+        const snap = await db.collection("analytics")
+          .doc(monthKey)
+          .collection(colName)
+          .get();
+        log("📂 " + monthKey + " / " + colName + " — " + snap.size + " صف.","ok");
+        return snap.docs.map(doc => doc.data());
+      }catch(err){
+        log("❌ Error fetching " + monthKey + "/" + colName + ": " + err.message,"err");
+        return [];
       }
-      let totalSpend=0,totalImpr=0,totalClicks=0,totalLeads=0;
-      let ctrSum=0,ctrCount=0;
-      let convSum=0,convCount=0;
-
-      rows.forEach(r=>{
-        const spend = Number(r.Spend||0);
-        const impr  = Number(r.Impressions||0);
-        const clicks= Number(r.Clicks||0);
-        const leads = Number(r.Leads||0);
-        const ctr   = Number(r.CTR||0);
-        const conv  = Number(r.ConversionRate||0);
-        const isMsg = r._src==="message";
-
-        totalSpend+=spend;
-        totalImpr +=impr;
-        totalClicks+=clicks;
-        totalLeads+=leads;
-
-        if(!isNaN(ctr) && ctr>0 && !isMsg){ ctrSum+=ctr; ctrCount++; }
-        if(!isNaN(conv)&& conv>0 && isMsg){ convSum+=conv; convCount++; }
-      });
-
-      let avgCtr=null;
-      if(modeForCtr==="messages"){
-        avgCtr = convCount>0 ? (convSum/convCount) : null;
-      }else if(modeForCtr==="platforms"){
-        avgCtr = ctrCount>0 ? (ctrSum/ctrCount) : (totalImpr>0 ? (totalClicks/totalImpr*100) : null);
-      }else{ // all
-        const combined = ctrCount+convCount;
-        if(combined>0) avgCtr=(ctrSum+convSum)/combined;
-        else if(totalImpr>0) avgCtr= totalClicks/totalImpr*100;
-      }
-
-      const avgCpc = totalClicks>0 ? totalSpend/totalClicks : null;
-      const avgCpl = totalLeads>0 ? totalSpend/totalLeads : null;
-      return {totalSpend,totalImpr,totalClicks,totalLeads,avgCtr,avgCpc,avgCpl};
     }
 
-    function groupBy(rows,key){
-      const map = new Map();
-      rows.forEach(r=>{
-        const k = (r[key] && String(r[key]).trim()) || "(غير محدد)";
-        if(!map.has(k)){
-          map.set(k,{name:k,spend:0,impr:0,clicks:0,leads:0,ctr:null});
+    function aggregateMonth(monthKey, allDocs){
+      const agg = {
+        monthKey,
+        totals:{
+          spend:0,
+          results:0,
+          impressions:0
+        },
+        platforms:{
+          meta:{spend:0,results:0,impressions:0,clicks:0},
+          tiktok:{spend:0,results:0,impressions:0,clicks:0},
+          snap:{spend:0,results:0,impressions:0,clicks:0}
+        },
+        resultTypes:{
+          messages_calls:{results:0,spend:0},
+          leads:{results:0,spend:0},
+          views:{results:0,spend:0},
+          engagement:{results:0,spend:0}
         }
-        const obj = map.get(k);
-        const spend=Number(r.Spend||0);
-        const impr =Number(r.Impressions||0);
-        const clicks=Number(r.Clicks||0);
-        const leads=Number(r.Leads||0);
-        const metric = r._src==="message" ? Number(r.ConversionRate||0) : Number(r.CTR||0);
-        obj.spend += spend;
-        obj.impr  += impr;
-        obj.clicks+= clicks;
-        obj.leads += leads;
-        if(!isNaN(metric) && metric>0){
-          if(obj.ctr==null) obj.ctr=0;
-          obj.ctr += metric;
+      };
+
+      function addRow(platform, sheetType, norm){
+        const spend       = toNumber(norm.spend);
+        const impressions = toNumber(norm.impressions);
+        const results     = toNumber(norm.results);
+        const clicks      = toNumber(norm.clicks);
+
+        agg.totals.spend      += spend;
+        agg.totals.results    += results;
+        agg.totals.impressions+= impressions;
+
+        if(agg.platforms[platform]){
+          agg.platforms[platform].spend       += spend;
+          agg.platforms[platform].results     += results;
+          agg.platforms[platform].impressions += impressions;
+          agg.platforms[platform].clicks      += clicks;
         }
-      });
-      const arr = Array.from(map.values());
-      arr.forEach(item=>{
-        item.cpc = item.clicks>0? item.spend/item.clicks : null;
-        item.cpl = item.leads>0? item.spend/item.leads : null;
-      });
-      return arr;
-    }
 
-    function buildTable(grouped){
-      lastGrouped = grouped || [];
-      if(!grouped || grouped.length===0){
-        tableContainer.innerHTML='<div class="empty-state">لا توجد بيانات مع الفلتر الحالي.</div>';
-        return;
+        let bucket = "engagement";
+        if(["messages","calls","direct"].includes(sheetType)) bucket = "messages_calls";
+        else if(sheetType === "leads") bucket = "leads";
+        else if(sheetType === "views") bucket = "views";
+
+        agg.resultTypes[bucket].results += results;
+        agg.resultTypes[bucket].spend   += spend;
       }
-      const top=[...grouped].sort((a,b)=>b.spend-a.spend).slice(0,50);
-      let html='<table dir="rtl"><thead><tr>';
-      html+='<th>الاسم</th><th>الإنفاق</th><th>Impressions</th><th>Clicks</th><th>Leads/Results</th><th>CTR/Conv%</th><th>CPC</th><th>CPL</th>';
-      html+='</tr></thead><tbody>';
-      top.forEach(r=>{
-        const badgeClass = r.ctr!=null && r.ctr>=2 ? "badge badge-green" :
-                           r.ctr!=null && r.ctr<0.7 ? "badge badge-red" : "badge badge-amber";
-        html+='<tr>';
-        html+=`<td>${r.name}</td>`;
-        html+=`<td>${formatNumber(r.spend)}</td>`;
-        html+=`<td>${formatNumber(r.impr)}</td>`;
-        html+=`<td>${formatNumber(r.clicks)}</td>`;
-        html+=`<td>${formatNumber(r.leads)}</td>`;
-        html+=`<td><span class="${badgeClass}">${r.ctr!=null?formatPercent(r.ctr):"-"}</span></td>`;
-        html+=`<td>${r.cpc!=null?r.cpc.toFixed(2):"-"}</td>`;
-        html+=`<td>${r.cpl!=null?r.cpl.toFixed(2):"-"}</td>`;
-        html+='</tr>';
-      });
-      html+='</tbody></table>';
-      tableContainer.innerHTML=html;
+
+      for(const d of allDocs){
+        const platform = d.platform || (d.norm && d.norm.platform) || "_";
+        const sheetType = d.sheetType || (d.norm && d.norm.sheetType) || "engagement";
+        const norm = d.norm || {};
+        if(!["meta","tiktok","snap"].includes(platform)) continue;
+        addRow(platform, sheetType, norm);
+      }
+
+      return agg;
     }
 
-    function buildCharts(grouped){
-      const top=[...grouped].sort((a,b)=>b.spend-a.spend).slice(0,10);
-      const labels=top.map(x=>x.name);
-      const spends=top.map(x=>x.spend);
-      const ctrs=top.map(x=>x.ctr||0);
+    function renderKpis(agg){
+      kpiTotalSpend.textContent   = formatNumber(agg.totals.spend);
+      kpiTotalResults.textContent = formatNumber(agg.totals.results);
+      kpiMessages.textContent     = formatNumber(agg.resultTypes.messages_calls.results);
+      kpiLeads.textContent        = formatNumber(agg.resultTypes.leads.results);
 
-      if(chartTopSpend) chartTopSpend.destroy();
-      if(chartCtr) chartCtr.destroy();
-      if(chartResultPie) chartResultPie.destroy();
+      function ctrOf(p){
+        const imp = p.impressions;
+        const clicks = p.clicks;
+        if(imp > 0 && clicks > 0){
+          return (clicks / imp) * 100;
+        }
+        return null;
+      }
 
-      const ctx1=document.getElementById("chartTopSpend").getContext("2d");
-      chartTopSpend=new Chart(ctx1,{
+      const metaP  = agg.platforms.meta;
+      const ttP    = agg.platforms.tiktok;
+      const snapP  = agg.platforms.snap;
+
+      metaSpendEl.textContent   = formatNumber(metaP.spend);
+      metaResultsEl.textContent = formatNumber(metaP.results);
+      metaCtrEl.textContent     = ctrOf(metaP) ? formatNumber(ctrOf(metaP)) + "%" : "-";
+
+      ttSpendEl.textContent   = formatNumber(ttP.spend);
+      ttResultsEl.textContent = formatNumber(ttP.results);
+      ttCtrEl.textContent     = ctrOf(ttP) ? formatNumber(ctrOf(ttP)) + "%" : "-";
+
+      snapSpendEl.textContent   = formatNumber(snapP.spend);
+      snapResultsEl.textContent = formatNumber(snapP.results);
+      snapCtrEl.textContent     = ctrOf(snapP) ? formatNumber(ctrOf(snapP)) + "%" : "-";
+    }
+
+    function renderCharts(agg){
+      const ctxSpend = document.getElementById("chartSpendPlatform").getContext("2d");
+      const ctxTypes = document.getElementById("chartResultsByType").getContext("2d");
+
+      if(chartSpendPlatform){ chartSpendPlatform.destroy(); }
+      if(chartResultsByType){ chartResultsByType.destroy(); }
+
+      chartSpendPlatform = new Chart(ctxSpend,{
         type:"bar",
-        data:{labels,datasets:[{label:"Spend",data:spends}]},
+        data:{
+          labels:["META","TikTok","Snap"],
+          datasets:[{
+            label:"الإنفاق",
+            data:[
+              agg.platforms.meta.spend,
+              agg.platforms.tiktok.spend,
+              agg.platforms.snap.spend
+            ]
+          }]
+        },
         options:{
           responsive:true,
-          maintainAspectRatio:false,
           plugins:{
             legend:{display:false},
-            tooltip:{callbacks:{label:(ctx)=>`إنفاق: ${formatNumber(ctx.parsed.y)} ر.س`}}
+            tooltip:{
+              callbacks:{
+                label:(ctx)=>"الإنفاق: " + formatNumber(ctx.parsed.y)
+              }
+            }
           },
-          scales:{y:{beginAtZero:true}}
+          scales:{
+            x:{ticks:{font:{family:"Tajawal"}}},
+            y:{ticks:{font:{family:"Tajawal"}}}
+          }
         }
       });
 
-      const ctx2=document.getElementById("chartCtr").getContext("2d");
-      chartCtr=new Chart(ctx2,{
-        type:"line",
-        data:{labels,datasets:[{label:"CTR/Conv%",data:ctrs}]},
+      chartResultsByType = new Chart(ctxTypes,{
+        type:"doughnut",
+        data:{
+          labels:["رسائل/مكالمات","ليدز","مشاهدات","تفاعل"],
+          datasets:[{
+            label:"النتائج",
+            data:[
+              agg.resultTypes.messages_calls.results,
+              agg.resultTypes.leads.results,
+              agg.resultTypes.views.results,
+              agg.resultTypes.engagement.results
+            ]
+          }]
+        },
         options:{
           responsive:true,
-          maintainAspectRatio:false,
           plugins:{
-            legend:{display:false},
-            tooltip:{callbacks:{label:(ctx)=>`% ${ctx.parsed.y.toFixed(2)}`}}
-          },
-          scales:{y:{beginAtZero:true}}
-        }
-      });
-
-      // Pie by Platform + ResultType
-      const map=new Map();
-      allMain.forEach(r=>{
-        const plat=r.Platform||"Other";
-        const rt=(r.ResultType||"").toString()||"Other";
-        const key=plat+" — "+rt;
-        const spend=Number(r.Spend||0);
-        map.set(key,(map.get(key)||0)+spend);
-      });
-      const pieLabels=Array.from(map.keys());
-      const pieData  =Array.from(map.values());
-      const ctx3=document.getElementById("chartResultPie").getContext("2d");
-      chartResultPie=new Chart(ctx3,{
-        type:"pie",
-        data:{labels:pieLabels,datasets:[{data:pieData}]},
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{
-            legend:{position:"bottom"},
-            tooltip:{callbacks:{label:(ctx)=>`${ctx.label}: ${formatNumber(ctx.parsed)} ر.س`}}
+            legend:{
+              position:"bottom",
+              labels:{font:{family:"Tajawal",size:11}}
+            },
+            tooltip:{
+              callbacks:{
+                label:(ctx)=>{
+                  const val = ctx.parsed;
+                  const total = ctx.dataset.data.reduce((a,b)=>a+b,0) || 1;
+                  const pct = (val/total)*100;
+                  return ctx.label + ": " + formatNumber(val) + " (" + pct.toFixed(1) + "%)";
+                }
+              }
+            }
           }
         }
       });
     }
 
-    function buildPlatformCards(rows){
-      if(!rows || rows.length===0){
-        platformCards.innerHTML='<div class="empty-state">لا توجد بيانات كافية لعرض كروت المنصات.</div>';
+    function renderCompareTable(aggMain, aggCompare){
+      compareBody.innerHTML = "";
+      if(!aggMain && !aggCompare){
+        compareBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9ca3af;">لسه مفيش مقارنة.</td></tr>';
         return;
       }
-      const map=new Map();
-      let totalSpend=0;
-      rows.forEach(r=>{
-        const plat=r.Platform || "Other";
-        const spend=Number(r.Spend||0);
-        const leads=Number(r.Leads||0);
-        totalSpend+=spend;
-        if(!map.has(plat)){
-          map.set(plat,{platform:plat,spend:0,leads:0});
+      function ctrApprox(agg){
+        const imp = agg.totals.impressions;
+        const res = agg.totals.results;
+        if(imp > 0 && res > 0){
+          // تقريباً: results / impressions (مش CTR حقيقي لكن يعطي إحساس)
+          return (res/imp)*100;
         }
-        const obj=map.get(plat);
-        obj.spend+=spend;
-        obj.leads+=leads;
-      });
-      const arr=Array.from(map.values()).sort((a,b)=>b.spend-a.spend);
-      let html="";
-      arr.forEach(p=>{
-        const share = totalSpend>0 ? (p.spend/totalSpend*100) : 0;
-        let chipClass="platform-other";
-        if(p.platform==="Meta") chipClass="platform-meta";
-        else if(p.platform==="TikTok") chipClass="platform-tiktok";
-        else if(p.platform==="Snapchat") chipClass="platform-snap";
-        html+=`<article class="platform-card">
-          <div class="platform-header">
-            <div class="platform-name">${p.platform}</div>
-            <div class="platform-chip ${chipClass}">${share.toFixed(1)}٪ من الإنفاق</div>
-          </div>
-          <div class="platform-body">
-            <div>
-              <div class="platform-metric-label">Spend</div>
-              <div class="platform-metric-value">${formatNumber(p.spend)} ر.س</div>
-            </div>
-            <div>
-              <div class="platform-metric-label">Leads / Messages</div>
-              <div class="platform-metric-value">${formatNumber(p.leads)}</div>
-            </div>
-          </div>
-        </article>`;
-      });
-      platformCards.innerHTML=html;
+        return null;
+      }
+
+      function rowHtml(label, agg){
+        if(!agg) return "";
+        const ctr = ctrApprox(agg);
+        return '<tr>' +
+          '<td>'+label+'</td>' +
+          '<td>'+formatNumber(agg.totals.spend)+'</td>' +
+          '<td>'+formatNumber(agg.totals.results)+'</td>' +
+          '<td>'+(ctr ? formatNumber(ctr)+"%" : "-")+'</td>' +
+        '</tr>';
+      }
+
+      let html = "";
+      if(aggMain)    html += rowHtml(aggMain.monthKey, aggMain);
+      if(aggCompare) html += rowHtml(aggCompare.monthKey, aggCompare);
+
+      compareBody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:#9ca3af;">لا يوجد داتا لعرضها.</td></tr>';
     }
 
-    async function fetchCollection(month, sub){
-      const ref = collection(db,"analytics",month,sub);
-      const snap = await getDocs(ref);
-      const arr=[];
-      snap.forEach(doc=>arr.push(doc.data()));
-      return arr;
+    async function loadMonthAgg(monthKey){
+      const metaDocs  = await fetchOneCollection(monthKey,"meta_raw");
+      const ttDocs    = await fetchOneCollection(monthKey,"tiktok_raw");
+      const snapDocs  = await fetchOneCollection(monthKey,"snap_raw");
+      const all = [...metaDocs,...ttDocs,...snapDocs];
+      if(all.length === 0){
+        log("⚠ لا توجد أي داتا لهذا الشهر في analytics/"+monthKey,"warn");
+      }
+      return aggregateMonth(monthKey, all);
     }
 
-    async function loadMonth(){
-      const mMain=monthMain.value;
-      const mComp=monthCompare.value;
+    async function handleLoad(){
+      const mMain = monthMain.value;
+      const mComp = monthCompare.value;
       if(!mMain){
-        alert("اختار الشهر الأساسي يا خال 🙏");
+        alert("اختار شهر رئيسي يا خال.");
         return;
       }
-      loadBtn.disabled=true;
-      setStatus("جاري تحميل بيانات الشهر الأساسي والمقارنة (إن وجدت)…","ok");
-      allMain=[];
-      allCompare=[];
+      logArea.innerHTML = "";
+      setStatus("جاري تحميل بيانات "+mMain+"...","ok");
+      loadBtn.disabled = true;
+      exportCsvBtn.disabled = true;
 
       try{
-        // Main
-        const platMain = await fetchCollection(mMain,"platforms_raw");
-        platMain.forEach(d=>{d._src="platform";});
-        const msgMain  = await fetchCollection(mMain,"messages_raw");
-        msgMain.forEach(d=>{d._src="message";});
-        allMain = [...platMain,...msgMain];
+        lastAggMain = await loadMonthAgg(mMain);
+        renderKpis(lastAggMain);
+        renderCharts(lastAggMain);
+        setStatus("تم تحميل بيانات "+mMain+" بنجاح.","ok");
 
-        // Compare (optional)
         if(mComp){
-          const platComp = await fetchCollection(mComp,"platforms_raw");
-          platComp.forEach(d=>{d._src="platform";});
-          const msgComp  = await fetchCollection(mComp,"messages_raw");
-          msgComp.forEach(d=>{d._src="message";});
-          allCompare=[...platComp,...msgComp];
-        }
-
-        if(allMain.length===0){
-          setStatus("لا توجد بيانات للشهر الأساسي في platforms_raw أو messages_raw.","bad");
-          kpiSpend.textContent="-";kpiImpr.textContent="-";kpiCtr.textContent="-";kpiCosts.textContent="-";
-          deltaSpend.textContent="";deltaImpr.textContent="";deltaCtr.textContent="";deltaCosts.textContent="";
-          platformCards.innerHTML='<div class="empty-state">ارفع شيت المنصات والرسائل لهذا الشهر أولاً.</div>';
-          tableContainer.innerHTML='<div class="empty-state">لا توجد بيانات للعرض.</div>';
-          if(chartTopSpend) chartTopSpend.destroy();
-          if(chartCtr) chartCtr.destroy();
-          if(chartResultPie) chartResultPie.destroy();
-          return;
-        }
-
-        setStatus(`تم تحميل ${allMain.length} صف من الشهر الأساسي${allCompare.length? " و "+allCompare.length+" من شهر المقارنة":""} ✅`,"ok");
-
-        const filteredMain = filterBySource(allMain);
-        const aggMain = computeAggregates(filteredMain, sourceFilter.value==="all" ? "all" : sourceFilter.value);
-        const filteredComp = filterBySource(allCompare);
-        const aggComp = computeAggregates(filteredComp, sourceFilter.value==="all" ? "all" : sourceFilter.value);
-
-        kpiSpend.textContent = formatNumber(aggMain.totalSpend);
-        kpiImpr.textContent  = formatNumber(aggMain.totalImpr);
-        kpiCtr.textContent   = aggMain.avgCtr!=null ? formatPercent(aggMain.avgCtr) : "-";
-        const cpcStr = aggMain.avgCpc!=null? aggMain.avgCpc.toFixed(2):"-";
-        const cplStr = aggMain.avgCpl!=null? aggMain.avgCpl.toFixed(2):"-";
-        kpiCosts.textContent = cpcStr+" | "+cplStr;
-
-        if(allCompare.length>0){
-          const dSpend = formatDelta(aggMain.totalSpend, aggComp.totalSpend, "٪");
-          const dImpr  = formatDelta(aggMain.totalImpr,  aggComp.totalImpr,  "٪");
-          const dCtr   = formatDelta(aggMain.avgCtr,     aggComp.avgCtr,     "٪");
-          const dCost  = formatDelta(aggMain.avgCpl,     aggComp.avgCpl,     "٪");
-
-          setDeltaElement(deltaSpend,dSpend);
-          setDeltaElement(deltaImpr,dImpr);
-          setDeltaElement(deltaCtr,dCtr);
-          setDeltaElement(deltaCosts,dCost);
+          log("——","warn");
+          log("📅 جاري تحميل شهر المقارنة: "+mComp,"warn");
+          lastAggCompare = await loadMonthAgg(mComp);
         }else{
-          clearDelta(deltaSpend);
-          clearDelta(deltaImpr);
-          clearDelta(deltaCtr);
-          clearDelta(deltaCosts);
+          lastAggCompare = null;
         }
-
-        const key = groupBySelect.value;
-        lastGroupKey = key;
-        updateTabsActive(key);
-
-        const grouped = groupBy(filteredMain,key);
-        chartMainTitle.textContent =
-          key==="CampaignName" ? "Top 10 حملات حسب الإنفاق" :
-          key==="AdSetName"    ? "Top 10 مجموعات إعلانية حسب الإنفاق" :
-          key==="AdName"       ? "Top 10 إعلانات حسب الإنفاق" :
-                                 "Top 10 منصات حسب الإنفاق";
-
-        buildTable(grouped);
-        buildCharts(grouped);
-        buildPlatformCards(filteredMain);
+        renderCompareTable(lastAggMain, lastAggCompare);
 
       }catch(err){
         console.error(err);
-        setStatus("حصل خطأ أثناء تحميل البيانات: "+err.message,"bad");
-        alert("Firestore Error: "+err.message);
+        log("❌ Error عام أثناء تحميل الداشبورد: "+err.message,"err");
+        setStatus("فشل في تحميل الداشبورد. راجع الـ Log.","bad");
       }finally{
-        loadBtn.disabled=false;
+        loadBtn.disabled = false;
+        exportCsvBtn.disabled = false;
       }
     }
 
-    function setDeltaElement(el,delta){
-      el.textContent = delta.text;
-      el.classList.remove("up","down","neutral");
-      el.classList.add(delta.cls||"neutral");
-    }
-    function clearDelta(el){
-      el.textContent="";
-      el.classList.remove("up","down","neutral");
-      el.classList.add("neutral");
-    }
-
-    sourceFilter.addEventListener("change",()=>{
-      if(!allMain.length) return;
-      const filteredMain = filterBySource(allMain);
-      const filteredComp = filterBySource(allCompare);
-
-      const aggMain = computeAggregates(filteredMain, sourceFilter.value==="all" ? "all" : sourceFilter.value);
-      const aggComp = computeAggregates(filteredComp, sourceFilter.value==="all" ? "all" : sourceFilter.value);
-
-      kpiSpend.textContent = formatNumber(aggMain.totalSpend);
-      kpiImpr.textContent  = formatNumber(aggMain.totalImpr);
-      kpiCtr.textContent   = aggMain.avgCtr!=null ? formatPercent(aggMain.avgCtr) : "-";
-      const cpcStr = aggMain.avgCpc!=null? aggMain.avgCpc.toFixed(2):"-";
-      const cplStr = aggMain.avgCpl!=null? aggMain.avgCpl.toFixed(2):"-";
-      kpiCosts.textContent = cpcStr+" | "+cplStr;
-
-      if(allCompare.length>0){
-        const dSpend = formatDelta(aggMain.totalSpend, aggComp.totalSpend, "٪");
-        const dImpr  = formatDelta(aggMain.totalImpr,  aggComp.totalImpr,  "٪");
-        const dCtr   = formatDelta(aggMain.avgCtr,     aggComp.avgCtr,     "٪");
-        const dCost  = formatDelta(aggMain.avgCpl,     aggComp.avgCpl,     "٪");
-        setDeltaElement(deltaSpend,dSpend);
-        setDeltaElement(deltaImpr,dImpr);
-        setDeltaElement(deltaCtr,dCtr);
-        setDeltaElement(deltaCosts,dCost);
-      }else{
-        clearDelta(deltaSpend);
-        clearDelta(deltaImpr);
-        clearDelta(deltaCtr);
-        clearDelta(deltaCosts);
-      }
-
-      const key = lastGroupKey;
-      const grouped = groupBy(filteredMain,key);
-      buildTable(grouped);
-      buildCharts(grouped);
-      buildPlatformCards(filteredMain);
-    });
-
-    groupBySelect.addEventListener("change",()=>{
-      if(!allMain.length) return;
-      const filteredMain = filterBySource(allMain);
-      const key = groupBySelect.value;
-      lastGroupKey = key;
-      updateTabsActive(key);
-      const grouped = groupBy(filteredMain,key);
-      chartMainTitle.textContent =
-        key==="CampaignName" ? "Top 10 حملات حسب الإنفاق" :
-        key==="AdSetName"    ? "Top 10 مجموعات إعلانية حسب الإنفاق" :
-        key==="AdName"       ? "Top 10 إعلانات حسب الإنفاق" :
-                               "Top 10 منصات حسب الإنفاق";
-      buildTable(grouped);
-      buildCharts(grouped);
-    });
-
-    function updateTabsActive(key){
-      const tabs = groupTabs.querySelectorAll(".pill-tab");
-      tabs.forEach(t=>{
-        const g=t.getAttribute("data-group");
-        if(g===key) t.classList.add("active");
-        else t.classList.remove("active");
-      });
-    }
-
-    groupTabs.addEventListener("click",(e)=>{
-      if(e.target.classList.contains("pill-tab")){
-        const g=e.target.getAttribute("data-group");
-        groupBySelect.value=g;
-        groupBySelect.dispatchEvent(new Event("change"));
-      }
-    });
-
-    loadBtn.addEventListener("click",loadMonth);
-
-    exportExcelBtn.addEventListener("click", function () {
-      if (!lastGrouped || lastGrouped.length === 0) {
-        alert("مفيش بيانات في الجدول الحالي للتصدير يا خال.");
+    function handleExportCsv(){
+      if(!lastAggMain){
+        alert("حمّل بيانات شهر أولاً قبل التصدير.");
         return;
       }
+      const aggA = lastAggMain;
+      const aggB = lastAggCompare;
 
-      const data = lastGrouped.map(function (r) {
-        return {
-          Name: r.name,
-          Spend: r.spend,
-          Impressions: r.impr,
-          Clicks: r.clicks,
-          Leads_Results: r.leads,
-          CTR_Conv: r.ctr,
-          CPC: r.cpc,
-          CPL: r.cpl
-        };
-      });
+      const rows = [];
+      rows.push(["Metric","Month","META","TikTok","Snap","Total"]);
 
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Dashboard");
-      const m = monthMain.value || "month";
-      XLSX.writeFile(wb, "mzj-ads-dashboard-" + m + ".xlsx");
-    });
+      function pushRow(label, extractor){
+        const aMeta = extractor(aggA.platforms.meta, aggA) || 0;
+        const aTT   = extractor(aggA.platforms.tiktok, aggA) || 0;
+        const aSnap = extractor(aggA.platforms.snap, aggA) || 0;
+        const aTotal= extractor(null, aggA) || 0;
+        rows.push([label+" ("+aggA.monthKey+")", aggA.monthKey, aMeta, aTT, aSnap, aTotal]);
 
-    exportPdfBtn.addEventListener("click",()=>{
-      // نستخدم طباعة المتصفح، والمستخدم يختار "حفظ كملف PDF"
-      window.print();
-    });
+        if(aggB){
+          const bMeta = extractor(aggB.platforms.meta, aggB) || 0;
+          const bTT   = extractor(aggB.platforms.tiktok, aggB) || 0;
+          const bSnap = extractor(aggB.platforms.snap, aggB) || 0;
+          const bTotal= extractor(null, aggB) || 0;
+          rows.push([label+" ("+aggB.monthKey+")", aggB.monthKey, bMeta, bTT, bSnap, bTotal]);
+        }
+      }
+
+      pushRow("Spend", (p,agg)=> p ? p.spend : agg.totals.spend);
+      pushRow("Results", (p,agg)=> p ? p.results : agg.totals.results);
+
+      const lines = rows.map(r => r.join(","));
+      const csvContent = lines.join("\n");
+      const blob = new Blob([csvContent],{type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "mzj-ads-dashboard-summary.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    loadBtn.addEventListener("click", handleLoad);
+    exportCsvBtn.addEventListener("click", handleExportCsv);
 
     (function presetMonth(){
-      const now=new Date();
-      const y=now.getFullYear();
-      const m=String(now.getMonth()+1).padStart(2,"0");
-      monthMain.value = `${y}-${m}`;
+      const now = new Date();
+      const y   = now.getFullYear();
+      const m   = String(now.getMonth()+1).padStart(2,"0");
+      monthMain.value = y + "-" + m;
     })();
   </script>
 </body>

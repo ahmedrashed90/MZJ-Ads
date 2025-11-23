@@ -3,13 +3,13 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <title>MZJ Ads — رفع المنصات v2</title>
+  <title>MZJ Ads — رفع المنصات v3 (Auto Detect)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Tajawal Font -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Firebase -->
+  <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
@@ -108,7 +108,7 @@
     }
     @media (min-width: 880px){
       .grid-2{
-        grid-template-columns:2.2fr 1.3fr;
+        grid-template-columns:2.1fr 1.3fr;
       }
     }
 
@@ -127,10 +127,9 @@
       color:var(--muted);
     }
     .field input[type="month"],
-    .field select,
     .field input[type="file"]{
       padding:7px 11px;
-      border-radius:999px;
+      border-radius:14px;
       border:1px solid var(--line);
       background:#f9fafb;
       font-family:inherit;
@@ -140,10 +139,8 @@
     }
     .field input[type="file"]{
       padding:6px 11px;
-      border-radius:14px;
     }
     .field input[type="month"]:focus,
-    .field select:focus,
     .field input[type="file"]:focus{
       border-color:var(--beige);
       box-shadow:0 0 0 1px rgba(188,143,116,0.5);
@@ -283,7 +280,7 @@
     <div class="mzj-topbar-inner">
       <div>
         <div class="mzj-topbar-title">MZJ Ads Workspace</div>
-        <div class="mzj-topbar-sub">رفع بيانات المنصات (META / TikTok / Snap) — نسخة v2 النظيفة</div>
+        <div class="mzj-topbar-sub">رفع بيانات المنصات (META / TikTok / Snap) — Auto Detect v3</div>
       </div>
       <nav class="mzj-topbar-nav">
         <a href="dashboard.html" class="mzj-topbar-link">الداشبورد</a>
@@ -297,12 +294,12 @@
     <section class="card">
       <div class="card-header">
         <div>
-          <div class="card-title">إعداد رفع المنصات v2</div>
+          <div class="card-title">رفع كل شيتات المنصات دفعة واحدة</div>
           <div class="card-sub">
-            اختار المنصة + نوع الشيت + شهر التقرير، وارفع ملف CSV/Excel. النظام هيقرأ كل الأعمدة ويحفظ
+            اختار شهر التقرير وارفع كل شيتات META / TikTok / Snap (تفاعل، مشاهدات، ليدز، رسائل، مكالمات، دايركت) دفعة واحدة.
+            النظام هيكشف تلقائيًا المنصة ونوع الشيت ويخزن
             <span class="badge">raw + norm</span>
-            في Firestore تحت
-            <code>analytics / {month} / {platform_raw}</code>.
+            في Firestore.
           </div>
         </div>
       </div>
@@ -310,64 +307,43 @@
       <div class="grid grid-2">
         <div class="grid" style="gap:10px;">
           <div class="field">
-            <label for="platformSelect">المنصة</label>
-            <select id="platformSelect">
-              <option value="meta">META (فيسبوك + إنستجرام)</option>
-              <option value="tiktok">TikTok</option>
-              <option value="snap">Snapchat</option>
-            </select>
-            <small>اختار المنصة اللي الشيت صادر منها.</small>
-          </div>
-
-          <div class="field">
-            <label for="sheetTypeSelect">نوع الشيت / الهدف</label>
-            <select id="sheetTypeSelect">
-              <option value="messages">رسائل / محادثات</option>
-              <option value="leads">ليدز / نماذج</option>
-              <option value="views">مشاهدات / Awareness</option>
-              <option value="engagement">تفاعل / Engagement</option>
-            </select>
-            <small>نستخدمه فقط لتسمية الـ KPIs في الداشبورد.</small>
-          </div>
-
-          <div class="field">
             <label for="monthInput">شهر التقرير</label>
             <input type="month" id="monthInput" />
-            <small>يخزن تحت مسار analytics / YYYY-MM.</small>
+            <small>يُستخدم في مسار Firestore: analytics / YYYY-MM / ...</small>
           </div>
 
           <div class="field">
-            <label for="fileInput">ملف الشيت (CSV أو Excel)</label>
-            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
-            <small>الداتا لازم تكون كاملة (الهيدر + كل الصفوف).</small>
+            <label for="fileInput">كل شيتات المنصات (CSV / Excel)</label>
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple />
+            <small>ممكن تختار كل ملفات META و TikTok و Snap مرة واحدة (ليدز، رسائل، مكالمات، مشاهدة… إلخ).</small>
           </div>
 
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
             <button id="uploadBtn" class="btn btn-primary">
-              رفع الشيت وحفظه في Firestore
+              رفع كل الملفات وتخزينها في Firestore
             </button>
             <button id="testParseBtn" class="btn btn-ghost">
-              تجربة قراءة أول 5 صفوف فقط
+              تجربة قراءة أول ملف فقط
             </button>
           </div>
 
           <div class="hint">
-            لو حصل أي Error، بص على الرسائل اللي تحت.  
-            كل صف بيتخزن بـ raw (كل الأعمدة) و norm (أعمدة موحّدة للداشبورد).
+            السيستم بيحاول يكتشف المنصة ونوع الشيت تلقائيًا من الهيدر واسم الملف.
+            لو ملف مش مفهوم، هتظهر رسالة ويُتخطى الملف.
           </div>
         </div>
 
         <div>
           <div class="field">
-            <label>حالة الرفع</label>
+            <label>حالة آخر عملية</label>
             <div id="statusPill" class="pill">
               <span class="pill-dot"></span>
-              <span id="statusText">في انتظار اختيار ملف والشهر.</span>
+              <span id="statusText">في انتظار اختيار شهر وملفات.</span>
             </div>
           </div>
 
           <div class="field" style="margin-top:8px;">
-            <label>Preview الأعمدة (أول 6 أعمدة من الهيدر)</label>
+            <label>Preview الهيدر لأول ملف</label>
             <table class="fake-table" id="headerPreview">
               <thead>
                 <tr><th>العمود 1</th><th>العمود 2</th><th>العمود 3</th><th>العمود 4</th><th>العمود 5</th><th>العمود 6</th></tr>
@@ -388,7 +364,7 @@
       </div>
 
       <div class="status-line">
-        <div>كل الصفوف هتتخزن مع كل الأعمدة الأصلية + نسخة Norm موحدة للداشبورد.</div>
+        <div>كل صف بيتخزن بالـ raw كامل + norm موحد (أرقام واضحة للداشبورد).</div>
         <div>Project: <code>mzj-ads / analytics</code></div>
       </div>
     </section>
@@ -407,23 +383,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ===== Helpers =====
-    const platformSelect   = document.getElementById("platformSelect");
-    const sheetTypeSelect  = document.getElementById("sheetTypeSelect");
-    const monthInput       = document.getElementById("monthInput");
-    const fileInput        = document.getElementById("fileInput");
-    const uploadBtn        = document.getElementById("uploadBtn");
-    const testParseBtn     = document.getElementById("testParseBtn");
-    const statusPill       = document.getElementById("statusPill");
-    const statusText       = document.getElementById("statusText");
-    const logArea          = document.getElementById("logArea");
+    // ===== DOM refs =====
+    const monthInput   = document.getElementById("monthInput");
+    const fileInput    = document.getElementById("fileInput");
+    const uploadBtn    = document.getElementById("uploadBtn");
+    const testParseBtn = document.getElementById("testParseBtn");
+    const statusPill   = document.getElementById("statusPill");
+    const statusText   = document.getElementById("statusText");
+    const logArea      = document.getElementById("logArea");
     const headerPreviewTbl = document.getElementById("headerPreview").querySelector("tbody");
 
     function log(message, type="ok"){
       const line = document.createElement("div");
-      if(type==="ok")   line.className = "log-line-ok";
-      if(type==="warn") line.className = "log-line-warn";
-      if(type==="err")  line.className = "log-line-err";
+      if(type === "ok")   line.className = "log-line-ok";
+      if(type === "warn") line.className = "log-line-warn";
+      if(type === "err")  line.className = "log-line-err";
       line.textContent = message;
       logArea.appendChild(line);
       logArea.scrollTop = logArea.scrollHeight;
@@ -432,9 +406,9 @@
     function setStatus(text, type="ok"){
       statusText.textContent = text;
       statusPill.classList.remove("pill-ok","pill-bad");
-      if(type==="ok"){
+      if(type === "ok"){
         statusPill.classList.add("pill-ok");
-      }else if(type==="bad"){
+      }else if(type === "bad"){
         statusPill.classList.add("pill-bad");
       }
     }
@@ -456,7 +430,59 @@
       return null;
     }
 
-    // ===== Column Maps =====
+    function updateHeaderPreview(headers){
+      headerPreviewTbl.innerHTML = "";
+      if(!headers || !headers.length){
+        headerPreviewTbl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;">لا توجد أعمدة في الملف.</td></tr>';
+        return;
+      }
+      const row = document.createElement("tr");
+      for(let i=0;i<6;i++){
+        const td = document.createElement("td");
+        td.textContent = headers[i] || "-";
+        row.appendChild(td);
+      }
+      headerPreviewTbl.appendChild(row);
+    }
+
+    function detectFileType(file){
+      const name = file.name.toLowerCase();
+      if(name.endsWith(".csv")) return "csv";
+      if(name.endsWith(".xlsx") || name.endsWith(".xls")) return "excel";
+      return "unknown";
+    }
+
+    function parseFile(file){
+      return new Promise((resolve, reject)=>{
+        const type = detectFileType(file);
+        if(type === "csv"){
+          Papa.parse(file,{
+            header:true,
+            skipEmptyLines:true,
+            complete:(res)=>{
+              resolve(res.data);
+            },
+            error:(err)=>reject(err)
+          });
+        }else if(type === "excel"){
+          const reader = new FileReader();
+          reader.onload = (e)=>{
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data,{type:"array"});
+            const sheetName = workbook.SheetNames[0];
+            const ws = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(ws,{defval:""});
+            resolve(json);
+          };
+          reader.onerror = (e)=>reject(e);
+          reader.readAsArrayBuffer(file);
+        }else{
+          reject(new Error("نوع الملف غير مدعوم. استخدم CSV أو Excel."));
+        }
+      });
+    }
+
+    // ===== Column Maps (نفس اللي اتفقنا عليه) =====
     const META_COLUMN_MAP = {
       spend: [
         "Amount spent (SAR)",
@@ -628,6 +654,76 @@
       ]
     };
 
+    // ===== كشف المنصة من الهيدر =====
+    function detectPlatform(headers, fileName){
+      const lower = headers.map(h => String(h || "").toLowerCase());
+      const name  = fileName.toLowerCase();
+
+      // TikTok
+      const isTikTok = lower.some(h => h.includes("ad group name") || h.includes("[mmp]") || h.includes("ctr (destination)"));
+      if(isTikTok || name.includes("tiktok") || name.includes("تيك توك")){
+        return "tiktok";
+      }
+
+      // Snapchat
+      const isSnap = lower.some(h => h.includes("معرّف الحملة") || h.includes("المجموعة الإعلانية") || h.includes("مرات الظهور المدفوعة"));
+      if(isSnap || name.includes("snap") || name.includes("سناب")){
+        return "snap";
+      }
+
+      // META
+      const isMeta = lower.some(h => h.includes("ad set name") || h.includes("amount spent") || h.includes("المبلغ الذي تم إنفاقه"));
+      if(isMeta || name.includes("meta") || name.includes("فيس") || name.includes("انست")){
+        return "meta";
+      }
+
+      return "unknown";
+    }
+
+    // ===== كشف نوع الشيت (messages / leads / views / engagement / calls / direct) =====
+    function detectSheetType(platform, headers, sampleRows, fileName){
+      const name = fileName.toLowerCase();
+      const lowerHeaders = headers.map(h => String(h || "").toLowerCase());
+      const joinedHeaders = lowerHeaders.join(" | ");
+
+      function containsAny(str, arr){
+        const s = str.toLowerCase();
+        return arr.some(k => s.includes(k.toLowerCase()));
+      }
+
+      // من اسم الملف أولاً
+      if(containsAny(name, ["ليدز","lead","leads"])) return "leads";
+      if(containsAny(name, ["رسائل","message","messages","مراسلة","محادث"])) return "messages";
+      if(containsAny(name, ["مشاهدات","مشاهدة","view","views","reach"])) return "views";
+      if(containsAny(name, ["تفاعل","engagement"])) return "engagement";
+      if(containsAny(name, ["مكالمات","مكالمه","calls","call"])) return "calls";
+      if(containsAny(name, ["دايركت","direct"])) return "direct";
+
+      // من الهيدر لو الاسم مش واضح
+      if(containsAny(joinedHeaders, ["message","messages","محادث","رسائل"])) return "messages";
+      if(containsAny(joinedHeaders, ["lead","leads","نموذج","نموذج بيانات","form"])) return "leads";
+      if(containsAny(joinedHeaders, ["view","مشاهدات","مشاهدة","thruplay","play"])) return "views";
+      if(containsAny(joinedHeaders, ["engagement","تفاعل","clicks","ctr"])) return "engagement";
+      if(containsAny(joinedHeaders, ["call","مكالمات","phone"])) return "calls";
+
+      // fallback حسب المنصة
+      if(platform === "meta" || platform === "tiktok"){
+        return "engagement";
+      }
+      if(platform === "snap"){
+        return "views";
+      }
+      return "engagement";
+    }
+
+    function getCollectionName(platform){
+      if(platform === "meta")   return "meta_raw";
+      if(platform === "tiktok") return "tiktok_raw";
+      if(platform === "snap")   return "snap_raw";
+      return "other_raw";
+    }
+
+    // ===== norm builders =====
     function buildNormForMeta(row, sheetType, monthKey){
       const spend       = toNumber(pickFirst(row, META_COLUMN_MAP.spend));
       const impressions = toNumber(pickFirst(row, META_COLUMN_MAP.impressions));
@@ -638,7 +734,7 @@
       const campaignName= pickFirst(row, META_COLUMN_MAP.campaignName);
       const adName      = pickFirst(row, META_COLUMN_MAP.adName);
 
-      const ctr         = impressions > 0 ? (results > 0 ? (results / impressions) * 100 : null) : null;
+      const ctr         = impressions > 0 && results > 0 ? (results / impressions) * 100 : null;
       const cpr         = results > 0 ? spend / results : null;
 
       return {
@@ -654,7 +750,7 @@
         results,
         costPerResult: costPerResult || cpr,
         ctr,
-        cpc: null // ممكن نزود لو عندنا Clicks في شيتات أخرى
+        cpc: null
       };
     }
 
@@ -743,74 +839,16 @@
       return { platform, sheetType, monthKey };
     }
 
-    function getCollectionName(platform){
-      if(platform === "meta")   return "meta_raw";
-      if(platform === "tiktok") return "tiktok_raw";
-      if(platform === "snap")   return "snap_raw";
-      return "other_raw";
-    }
-
-    function updateHeaderPreview(headers){
-      headerPreviewTbl.innerHTML = "";
-      if(!headers || !headers.length){
-        headerPreviewTbl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;">لا توجد أعمدة في الملف.</td></tr>';
-        return;
-      }
-      const row = document.createElement("tr");
-      for(let i=0;i<6;i++){
-        const td = document.createElement("td");
-        td.textContent = headers[i] || "-";
-        row.appendChild(td);
-      }
-      headerPreviewTbl.appendChild(row);
-    }
-
-    function detectFileType(file){
-      const name = file.name.toLowerCase();
-      if(name.endsWith(".csv")) return "csv";
-      if(name.endsWith(".xlsx") || name.endsWith(".xls")) return "excel";
-      return "unknown";
-    }
-
-    function parseFile(file){
-      return new Promise((resolve, reject)=>{
-        const type = detectFileType(file);
-        if(type === "csv"){
-          Papa.parse(file,{
-            header:true,
-            skipEmptyLines:true,
-            complete:(res)=>{
-              resolve(res.data);
-            },
-            error:(err)=>reject(err)
-          });
-        }else if(type === "excel"){
-          const reader = new FileReader();
-          reader.onload = (e)=>{
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data,{type:"array"});
-            const sheetName = workbook.SheetNames[0];
-            const ws = workbook.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(ws,{defval:""});
-            resolve(json);
-          };
-          reader.onerror = (e)=>reject(e);
-          reader.readAsArrayBuffer(file);
-        }else{
-          reject(new Error("نوع الملف غير مدعوم. استخدم CSV أو Excel."));
-        }
-      });
-    }
-
     async function handleTestParse(){
-      const file = fileInput.files[0];
-      if(!file){
-        alert("اختار ملف الأول يا خال.");
+      const files = fileInput.files;
+      if(!files || !files.length){
+        alert("اختار ملف واحد على الأقل يا خال.");
         return;
       }
+      const file = files[0];
       logArea.innerHTML = "";
-      setStatus("جاري تجربة قراءة الملف…","ok");
-      log("⏳ Test Parse: جاري قراءة أول 5 صفوف…","warn");
+      setStatus("جاري تجربة قراءة أول ملف…","ok");
+      log("⏳ Test Parse: جاري قراءة أول ملف فقط…","warn");
 
       try{
         const rows = await parseFile(file);
@@ -821,26 +859,33 @@
         }
         const headers = Object.keys(rows[0]);
         updateHeaderPreview(headers);
-        log(`✅ تم قراءة ${rows.length} صف. أول 5 صفوف للمعاينة:`,`ok");
-        rows.slice(0,5).forEach((r,idx)=>{
-          log(`#${idx+1}: `+JSON.stringify(r), "ok");
+
+        const platform = detectPlatform(headers, file.name);
+        const sheetType = detectSheetType(platform, headers, rows.slice(0,5), file.name);
+
+        log("📄 اسم الملف: " + file.name,"ok");
+        log("🔎 عدد الصفوف المقروءة: " + rows.length,"ok");
+        log("🧭 المنصة المتوقعة: " + platform,"ok");
+        log("🎯 نوع الشيت المتوقع: " + sheetType,"ok");
+        log("👀 أول 3 صفوف للمعاينة:","ok");
+        rows.slice(0,3).forEach((r,idx)=>{
+          log("#" + (idx+1) + ": " + JSON.stringify(r), "ok");
         });
-        setStatus("تمت تجربة القراءة بنجاح. لو كل شيء مظبوط، دوس رفع الشيت.","ok");
+
+        setStatus("تمت تجربة القراءة بنجاح. لو كل شيء مظبوط، دوس رفع كل الملفات.","ok");
       }catch(err){
         console.error(err);
-        log("❌ Error أثناء القراءة: "+err.message,"err");
+        log("❌ Error أثناء القراءة: " + err.message,"err");
         setStatus("فشل في قراءة الملف. تأكد من الفورمات.","bad");
       }
     }
 
     async function handleUpload(){
-      const file     = fileInput.files[0];
-      const platform = platformSelect.value;
-      const sheetType= sheetTypeSelect.value;
+      const files = fileInput.files;
       const monthVal = monthInput.value;
 
-      if(!file){
-        alert("اختار ملف الأول يا خال.");
+      if(!files || !files.length){
+        alert("اختار ملفات الشيت الأول يا خال.");
         return;
       }
       if(!monthVal){
@@ -849,76 +894,98 @@
       }
 
       logArea.innerHTML = "";
-      setStatus("جاري قراءة الملف وتجهيزه للرفع…","ok");
+      setStatus("جاري قراءة الملفات ورفعها…","ok");
       uploadBtn.disabled   = true;
       testParseBtn.disabled= true;
 
+      const monthKey = monthVal;
+      let globalSuccess = 0;
+      let globalFail    = 0;
+
       try{
-        const rows = await parseFile(file);
-        if(!rows.length){
-          setStatus("الملف لا يحتوي على صفوف.","bad");
-          log("⚠ الملف فاضي أو مفيهوش داتا.","warn");
-          uploadBtn.disabled   = false;
-          testParseBtn.disabled= false;
-          return;
-        }
+        for(const file of files){
+          log("==========","warn");
+          log("📄 بدء معالجة الملف: " + file.name,"warn");
 
-        const headers = Object.keys(rows[0]);
-        updateHeaderPreview(headers);
-        log(`📄 عدد الصفوف المقروءة من الملف: ${rows.length}`,"ok");
-
-        const monthKey = monthVal;
-        const colName  = getCollectionName(platform);
-
-        let successCount = 0;
-        let failCount    = 0;
-
-        for(let i=0;i<rows.length;i++){
-          const rawRow = rows[i];
-          // تخطي الصفوف الفارغة تماماً
-          const values = Object.values(rawRow || {});
-          const allEmpty = values.every(v => v === null || v === undefined || String(v).trim() === "");
-          if(allEmpty){
+          let rows;
+          try{
+            rows = await parseFile(file);
+          }catch(errFile){
+            log("❌ فشل قراءة الملف: " + errFile.message,"err");
+            globalFail++;
             continue;
           }
 
-          const norm = buildNormRow(rawRow, platform, sheetType, monthKey);
-          const docData = {
-            raw: rawRow,
-            norm,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          };
-          try{
-            await db.collection("analytics")
-              .doc(monthKey)
-              .collection(colName)
-              .add(docData);
-            successCount++;
-            if(successCount <= 3){
-              log(`✅ صف ${i+1} تم حفظه بنجاح.`, "ok");
-            }
-          }catch(err){
-            failCount++;
-            console.error(err);
-            if(failCount <= 3){
-              log(`❌ خطأ في حفظ الصف ${i+1}: ${err.message}`,"err");
+          if(!rows.length){
+            log("⚠ الملف لا يحتوي على صفوف. تم تخطيه.","warn");
+            continue;
+          }
+
+          const headers = Object.keys(rows[0]);
+          const platform = detectPlatform(headers, file.name);
+          const sheetType = detectSheetType(platform, headers, rows.slice(0,5), file.name);
+
+          if(platform === "unknown"){
+            log("⚠ لم يتم التعرف على المنصة من هذا الملف. تم تخطيه.","warn");
+            continue;
+          }
+
+          updateHeaderPreview(headers);
+          log("🧭 المنصة: " + platform + " | 🎯 نوع الشيت: " + sheetType,"ok");
+          const colName = getCollectionName(platform);
+
+          let successCount = 0;
+          let failCount    = 0;
+
+          for(let i=0;i<rows.length;i++){
+            const rawRow = rows[i];
+            const values = Object.values(rawRow || {});
+            const allEmpty = values.every(v => v === null || v === undefined || String(v).trim() === "");
+            if(allEmpty) continue;
+
+            const norm = buildNormRow(rawRow, platform, sheetType, monthKey);
+            const docData = {
+              raw: rawRow,
+              norm,
+              platform,
+              sheetType,
+              monthKey,
+              sourceFile: file.name,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            try{
+              await db.collection("analytics")
+                .doc(monthKey)
+                .collection(colName)
+                .add(docData);
+              successCount++;
+            }catch(err){
+              failCount++;
+              if(failCount <= 3){
+                log("❌ Error حفظ الصف " + (i+1) + ": " + err.message,"err");
+              }
             }
           }
+
+          log("📦 الملف " + file.name + " — تم رفع " + successCount + " صف، مع " + failCount + " خطأ.","ok");
+          globalSuccess += successCount;
+          globalFail    += failCount;
         }
 
-        log(`🎯 تم الإنتهاء من الرفع: ناجح = ${successCount} | فاشل = ${failCount}`,"ok");
-        if(successCount > 0 && failCount === 0){
-          setStatus(`تم رفع ${successCount} صف بنجاح إلى analytics/${monthKey}/${colName}.`,"ok");
-        }else if(successCount > 0){
-          setStatus(`تم رفع ${successCount} صف، مع ${failCount} خطأ. راجع الـ Log.`,"bad");
+        log("==========","warn");
+        log("🎯 إجمالي الرفع — ناجح = " + globalSuccess + " | فاشل = " + globalFail,"ok");
+        if(globalSuccess > 0 && globalFail === 0){
+          setStatus("تم رفع كل الصفوف بنجاح إلى analytics/" + monthKey + "/...","ok");
+        }else if(globalSuccess > 0){
+          setStatus("تم رفع " + globalSuccess + " صف، مع " + globalFail + " خطأ. راجع الـ Log.","bad");
         }else{
-          setStatus("لم يتم حفظ أي صف. راجع فورمات الملف والـ Log.","bad");
+          setStatus("لم يتم حفظ أي صف. راجع الملفات والـ Log.","bad");
         }
 
       }catch(err){
         console.error(err);
-        log("❌ Error عام أثناء المعالجة: "+err.message,"err");
-        setStatus("فشل في قراءة أو حفظ الملف. راجع الـ Log.","bad");
+        log("❌ Error عام أثناء معالجة الملفات: " + err.message,"err");
+        setStatus("فشل عام أثناء المعالجة. راجع الـ Log.","bad");
       }finally{
         uploadBtn.disabled   = false;
         testParseBtn.disabled= false;
@@ -932,7 +999,7 @@
       const now = new Date();
       const y   = now.getFullYear();
       const m   = String(now.getMonth()+1).padStart(2,"0");
-      monthInput.value = `${y}-${m}`;
+      monthInput.value = y + "-" + m;
     })();
   </script>
 </body>

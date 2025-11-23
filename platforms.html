@@ -1,332 +1,939 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <style>
-  /* شيل أي مساحة فوق التوب بار */
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* سحب التوب بار لأعلى */
-  .mzj-topbar {
-    margin-top: 0 !important;
-  }
-
-  /* في بعض التصميمات بيكون في padding لعنصر HTML نفسه */
-  html {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* إزالة أي margin من أول عنصر بعد التوب بار */
-  .app-shell,
-  .container,
-  main {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-  }
-</style>
-
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MZJ Ads — رفع المنصات</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8" />
+  <title>MZJ Ads — رفع المنصات v2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tajawal Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <!-- XLSX & PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
-    body{font-family:Tajawal;background:#f5eee8;margin:0;padding:20px;}
-    .card{background:#fff;border-radius:14px;padding:20px;max-width:750px;margin:auto;
-          box-shadow:0 10px 25px rgba(0,0,0,.1);border:1px solid #e5e7eb;}
-    h2{margin-top:0;color:#3e2420;}
-    label{font-weight:600;margin-bottom:6px;display:block;color:#3e2420;font-size:14px;}
-    input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;
-                 margin-bottom:15px;font-family:inherit;font-size:13px;background:#fafafa;}
-    button{padding:10px 18px;border:none;border-radius:999px;background:#3e2420;
-           color:#fff;font-weight:700;cursor:pointer;font-size:13px;
-           box-shadow:0 8px 18px rgba(62,36,32,.35);}
-    button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
-    button:not(:disabled):hover{background:#2b1612;}
-    small{display:block;font-size:11px;color:#6b7280;margin-top:-8px;margin-bottom:10px;}
-    #log{background:#020617;color:#e5e7eb;padding:12px;border-radius:8px;
-         font-size:12px;height:260px;overflow:auto;white-space:pre-wrap;
-         font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .tag{display:inline-flex;gap:6px;align-items:center;font-size:11px;color:#4b5563;margin-bottom:10px;}
-    .tag-dot{width:8px;height:8px;border-radius:999px;background:#22c55e;}
+    :root{
+      --brown:#3e2420;
+      --beige:#bc8f74;
+      --cream:#fff8ef;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --radius:18px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Tajawal",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:radial-gradient(circle at top left,#fef3c7,#f5ebe2 40%,#ffffff 80%);
+      color:var(--text);
+    }
+
+    /* Top unified bar */
+    .mzj-topbar{
+      position:sticky;
+      top:0;
+      z-index:999;
+      background:#3e2420;
+      color:#f9fafb;
+      box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    }
+    .mzj-topbar-inner{
+      max-width:1350px;
+      margin:0 auto;
+      padding:10px 18px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+    .mzj-topbar-title{font-size:16px;font-weight:800;}
+    .mzj-topbar-sub{font-size:12px;opacity:.8;}
+    .mzj-topbar-nav{display:flex;gap:10px;flex-wrap:wrap;}
+    .mzj-topbar-link{
+      padding:5px 14px;
+      font-size:12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.5);
+      color:#fff;
+      text-decoration:none;
+      transition:.2s;
+    }
+    .mzj-topbar-link:hover{
+      background:#facc15;
+      color:#1f2937;
+      border-color:#facc15;
+    }
+
+    .app{
+      max-width:1150px;
+      margin:18px auto 24px;
+      padding:0 16px 24px;
+    }
+
+    .card{
+      background:#fff8ef;
+      border-radius:var(--radius);
+      border:1px solid rgba(226,232,240,0.9);
+      box-shadow:0 14px 32px rgba(15,23,42,0.12);
+      padding:14px 16px 16px;
+      margin-bottom:14px;
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .card-title{
+      font-size:15px;
+      font-weight:800;
+      color:var(--brown);
+    }
+    .card-sub{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .grid{
+      display:grid;
+      gap:12px;
+    }
+    @media (min-width: 880px){
+      .grid-2{
+        grid-template-columns:2.2fr 1.3fr;
+      }
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      font-size:13px;
+    }
+    .field label{
+      font-weight:600;
+      color:var(--brown);
+    }
+    .field small{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .field input[type="month"],
+    .field select,
+    .field input[type="file"]{
+      padding:7px 11px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#f9fafb;
+      font-family:inherit;
+      font-size:13px;
+      outline:none;
+      transition:.12s ease border-color,.12s ease box-shadow,.12s ease background;
+    }
+    .field input[type="file"]{
+      padding:6px 11px;
+      border-radius:14px;
+    }
+    .field input[type="month"]:focus,
+    .field select:focus,
+    .field input[type="file"]:focus{
+      border-color:var(--beige);
+      box-shadow:0 0 0 1px rgba(188,143,116,0.5);
+      background:#ffffff;
+    }
+
+    .btn{
+      padding:8px 16px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:13px;
+      font-weight:700;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:.12s ease all;
+    }
+    .btn-primary{
+      background:var(--brown);
+      color:#ffffff;
+      box-shadow:0 10px 24px rgba(62,36,32,0.55);
+    }
+    .btn-primary:not(:disabled):hover{
+      background:#2e1714;
+      transform:translateY(-1px);
+      box-shadow:0 16px 32px rgba(15,23,42,0.6);
+    }
+    .btn-primary:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      box-shadow:none;
+      transform:none;
+    }
+    .btn-ghost{
+      background:transparent;
+      color:var(--brown);
+      border:1px dashed rgba(148,163,184,0.9);
+    }
+    .btn-ghost:hover{
+      border-style:solid;
+      background:#f9fafb;
+    }
+
+    .status-line{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:8px;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 9px;
+      border-radius:999px;
+      font-size:11px;
+      border:1px solid rgba(148,163,184,0.8);
+    }
+    .pill-ok{
+      background:#ecfdf3;
+      border-color:#bbf7d0;
+      color:#166534;
+    }
+    .pill-bad{
+      background:#fef2f2;
+      border-color:#fecaca;
+      color:#991b1b;
+    }
+    .pill-dot{
+      width:7px;
+      height:7px;
+      border-radius:999px;
+      background:currentColor;
+    }
+
+    .log-area{
+      max-height:260px;
+      overflow:auto;
+      padding:8px 10px;
+      border-radius:12px;
+      background:#f9fafb;
+      border:1px dashed #e2e8f0;
+      font-size:11px;
+      line-height:1.7;
+      direction:ltr;
+      text-align:left;
+    }
+    .log-line-ok{color:#16a34a;}
+    .log-line-warn{color:#ca8a04;}
+    .log-line-err{color:#dc2626;}
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      background:#eff6ff;
+      color:#1d4ed8;
+      margin-inline-start:4px;
+    }
+
+    .fake-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+      margin-top:8px;
+    }
+    .fake-table th,
+    .fake-table td{
+      padding:4px 6px;
+      border-bottom:1px solid #e2e8f0;
+      white-space:nowrap;
+      text-align:right;
+    }
+    .fake-table th{
+      background:#f8fafc;
+      font-weight:700;
+      color:#475569;
+    }
+
+    .hint{
+      font-size:11px;
+      color:#94a3b8;
+      margin-top:4px;
+    }
   </style>
-
-<style>
-
-.mzj-topbar{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:#3e2420;
-  color:#f9fafb;
-  box-shadow:0 10px 30px rgba(15,23,42,0.5);
-}
-.mzj-topbar-inner{
-  max-width:1320px;
-  margin:0 auto;
-  padding:10px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-}
-.mzj-topbar-left{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.mzj-topbar-title{
-  font-weight:800;
-  font-size:15px;
-}
-.mzj-topbar-sub{
-  font-size:11px;
-  opacity:.9;
-}
-.mzj-topbar-nav{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.mzj-topbar-link{
-  font-size:12px;
-  padding:5px 10px;
-  border-radius:999px;
-  border:1px solid rgba(248,250,252,0.45);
-  color:#f9fafb;
-  text-decoration:none;
-  transition:.15s ease all;
-}
-.mzj-topbar-link:hover{
-  background:#facc15;
-  color:#1f2937;
-  border-color:#facc15;
-}
-@media(max-width:640px){
-  .mzj-topbar-inner{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-  .mzj-topbar-nav{
-    width:100%;
-    justify-content:flex-start;
-    flex-wrap:wrap;
-  }
-}
-
-</style>
 </head>
 <body>
-
   <div class="mzj-topbar">
     <div class="mzj-topbar-inner">
-      <div class="mzj-topbar-left">
-        <span class="mzj-topbar-title">MZJ Ads Workspace</span>
-        <span class="mzj-topbar-sub">منصة واحدة لرفع المنصات والرسائل وتحليل النتائج</span>
+      <div>
+        <div class="mzj-topbar-title">MZJ Ads Workspace</div>
+        <div class="mzj-topbar-sub">رفع بيانات المنصات (META / TikTok / Snap) — نسخة v2 النظيفة</div>
       </div>
       <nav class="mzj-topbar-nav">
-      <a href="dashboard.html" class="mzj-topbar-link">الداشبورد</a>
-      <a href="platforms.html" class="mzj-topbar-link">رفع المنصات</a>
-      <a href="messages.html" class="mzj-topbar-link">رفع الرسائل</a>
+        <a href="dashboard.html" class="mzj-topbar-link">الداشبورد</a>
+        <a href="platforms.html" class="mzj-topbar-link" style="background:#facc15;color:#1f2937;border-color:#facc15;">رفع المنصات</a>
+        <a href="messages.html" class="mzj-topbar-link">رفع الرسائل</a>
       </nav>
     </div>
   </div>
 
+  <main class="app">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">إعداد رفع المنصات v2</div>
+          <div class="card-sub">
+            اختار المنصة + نوع الشيت + شهر التقرير، وارفع ملف CSV/Excel. النظام هيقرأ كل الأعمدة ويحفظ
+            <span class="badge">raw + norm</span>
+            في Firestore تحت
+            <code>analytics / {month} / {platform_raw}</code>.
+          </div>
+        </div>
+      </div>
 
-  <div class="card">
-    <div class="tag"><span class="tag-dot"></span><span>MZJ Ads — رفع بيانات المنصات (Meta / TikTok / Snap)</span></div>
-    <h2>رفع شيت المنصات (أداء الإعلانات العام)</h2>
+      <div class="grid grid-2">
+        <div class="grid" style="gap:10px;">
+          <div class="field">
+            <label for="platformSelect">المنصة</label>
+            <select id="platformSelect">
+              <option value="meta">META (فيسبوك + إنستجرام)</option>
+              <option value="tiktok">TikTok</option>
+              <option value="snap">Snapchat</option>
+            </select>
+            <small>اختار المنصة اللي الشيت صادر منها.</small>
+          </div>
 
-    <label>الشهر</label>
-    <input type="month" id="month"/>
-    <small>هيتخزن في: analytics / {"{الشهر}"} / platforms_raw</small>
+          <div class="field">
+            <label for="sheetTypeSelect">نوع الشيت / الهدف</label>
+            <select id="sheetTypeSelect">
+              <option value="messages">رسائل / محادثات</option>
+              <option value="leads">ليدز / نماذج</option>
+              <option value="views">مشاهدات / Awareness</option>
+              <option value="engagement">تفاعل / Engagement</option>
+            </select>
+            <small>نستخدمه فقط لتسمية الـ KPIs في الداشبورد.</small>
+          </div>
 
-    <label>المنصة</label>
-    <select id="platform">
-      <option value="Meta">Meta (Facebook / Instagram)</option>
-      <option value="TikTok">TikTok</option>
-      <option value="Snapchat">Snapchat</option>
-      <option value="Other">منصة أخرى</option>
-    </select>
+          <div class="field">
+            <label for="monthInput">شهر التقرير</label>
+            <input type="month" id="monthInput" />
+            <small>يخزن تحت مسار analytics / YYYY-MM.</small>
+          </div>
 
-    <label>ملف المنصات (CSV أو Excel)</label>
-    <input type="file" id="file" accept=".csv,.xlsx,.xls"/>
-    <small>شيت فيه بيانات الإنفاق والظهور والنتائج (أي فورمات… هنحاول نقرّاه ونظبطه).</small>
+          <div class="field">
+            <label for="fileInput">ملف الشيت (CSV أو Excel)</label>
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
+            <small>الداتا لازم تكون كاملة (الهيدر + كل الصفوف).</small>
+          </div>
 
-    <button id="uploadBtn">رفع الشيت ومعالجته</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            <button id="uploadBtn" class="btn btn-primary">
+              رفع الشيت وحفظه في Firestore
+            </button>
+            <button id="testParseBtn" class="btn btn-ghost">
+              تجربة قراءة أول 5 صفوف فقط
+            </button>
+          </div>
 
-    <h3 style="margin-top:18px;margin-bottom:8px;font-size:14px;color:#111827;">اللوج / اللي بيحصل في الخلفية</h3>
-    <div id="log"></div>
-  </div>
+          <div class="hint">
+            لو حصل أي Error، بص على الرسائل اللي تحت.  
+            كل صف بيتخزن بـ raw (كل الأعمدة) و norm (أعمدة موحّدة للداشبورد).
+          </div>
+        </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        <div>
+          <div class="field">
+            <label>حالة الرفع</label>
+            <div id="statusPill" class="pill">
+              <span class="pill-dot"></span>
+              <span id="statusText">في انتظار اختيار ملف والشهر.</span>
+            </div>
+          </div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDh7ofrYeZ_KWlk7NJmBuZw0NLm5xkNBks",
-  authDomain: "mzj-ads.firebaseapp.com",
-  projectId: "mzj-ads",
-  storageBucket: "mzj-ads.firebasestorage.app",
-  messagingSenderId: "830896442086",
-  appId: "1:830896442086:web:f42e7329bd3a8400a90927"
-};
+          <div class="field" style="margin-top:8px;">
+            <label>Preview الأعمدة (أول 6 أعمدة من الهيدر)</label>
+            <table class="fake-table" id="headerPreview">
+              <thead>
+                <tr><th>العمود 1</th><th>العمود 2</th><th>العمود 3</th><th>العمود 4</th><th>العمود 5</th><th>العمود 6</th></tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="6" style="text-align:center;color:#94a3b8;">لسه مفيش ملف مرفوع.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+      <div class="field" style="margin-top:10px;">
+        <label>Log / سجل العمليات</label>
+        <div id="logArea" class="log-area">
+          <!-- log lines -->
+        </div>
+      </div>
 
-const monthInput = document.getElementById("month");
-const fileInput  = document.getElementById("file");
-const uploadBtn  = document.getElementById("uploadBtn");
-const logBox     = document.getElementById("log");
-const platformSel= document.getElementById("platform");
+      <div class="status-line">
+        <div>كل الصفوف هتتخزن مع كل الأعمدة الأصلية + نسخة Norm موحدة للداشبورد.</div>
+        <div>Project: <code>mzj-ads / analytics</code></div>
+      </div>
+    </section>
+  </main>
 
-function log(txt){
-  const now = new Date();
-  const time = now.toISOString().split("T")[1].split(".")[0];
-  logBox.textContent += "["+time+"] "+txt+"\\n";
-  logBox.scrollTop = logBox.scrollHeight;
-  console.log(txt);
-}
+  <script>
+    // ===== Firebase Init (compat) =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh7ofrYeZ_KWlk7NJmBuZw0NLm5xkNBks",
+      authDomain: "mzj-ads.firebaseapp.com",
+      projectId: "mzj-ads",
+      storageBucket: "mzj-ads.firebasestorage.app",
+      messagingSenderId: "830896442086",
+      appId: "1:830896442086:web:f42e7329bd3a8400a90927"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-async function readFileSmart(file){
-  const buffer = await file.arrayBuffer();
-  const name   = file.name.toLowerCase();
-  const isCsv  = name.endsWith(".csv");
+    // ===== Helpers =====
+    const platformSelect   = document.getElementById("platformSelect");
+    const sheetTypeSelect  = document.getElementById("sheetTypeSelect");
+    const monthInput       = document.getElementById("monthInput");
+    const fileInput        = document.getElementById("fileInput");
+    const uploadBtn        = document.getElementById("uploadBtn");
+    const testParseBtn     = document.getElementById("testParseBtn");
+    const statusPill       = document.getElementById("statusPill");
+    const statusText       = document.getElementById("statusText");
+    const logArea          = document.getElementById("logArea");
+    const headerPreviewTbl = document.getElementById("headerPreview").querySelector("tbody");
 
-  if(!isCsv){
-    log("📄 ملف Excel (XLS/XLSX) — قراءة بصيغة array");
-    const wb = XLSX.read(buffer,{ type:"array" });
-    const sheet = wb.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval:"", raw:true });
-    return rows;
-  }
+    function log(message, type="ok"){
+      const line = document.createElement("div");
+      if(type==="ok")   line.className = "log-line-ok";
+      if(type==="warn") line.className = "log-line-warn";
+      if(type==="err")  line.className = "log-line-err";
+      line.textContent = message;
+      logArea.appendChild(line);
+      logArea.scrollTop = logArea.scrollHeight;
+    }
 
-  const bytes = new Uint8Array(buffer);
-  let text;
-  log("📄 ملف CSV — محاولة اكتشاف الترميز (UTF-8 / UTF-16 / Windows-1256)...");
-
-  if(bytes[0] === 0xFF && bytes[1] === 0xFE){
-    log("🔎 UTF-16 LE");
-    text = new TextDecoder("utf-16le").decode(buffer);
-  }else if(bytes[0] === 0xFE && bytes[1] === 0xFF){
-    log("🔎 UTF-16 BE");
-    text = new TextDecoder("utf-16be").decode(buffer);
-  }else{
-    try{
-      log("🔎 تجربة UTF-8");
-      text = new TextDecoder("utf-8").decode(buffer);
-      if(text.includes("Ù") || text.includes("Ø") || text.includes("Ð")){
-        log("⚠ العربي بايظ… إعادة القراءة windows-1256");
-        text = new TextDecoder("windows-1256").decode(buffer);
+    function setStatus(text, type="ok"){
+      statusText.textContent = text;
+      statusPill.classList.remove("pill-ok","pill-bad");
+      if(type==="ok"){
+        statusPill.classList.add("pill-ok");
+      }else if(type==="bad"){
+        statusPill.classList.add("pill-bad");
       }
-    }catch(e){
-      log("⚠ فشل UTF-8… استخدام windows-1256");
-      text = new TextDecoder("windows-1256").decode(buffer);
-    }
-  }
-
-  const wb = XLSX.read(text,{ type:"string" });
-  const sheet = wb.SheetNames[0];
-  const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { defval:"", raw:true });
-  return rows;
-}
-
-function getField(row,names){
-  for(const n of names){
-    if(Object.prototype.hasOwnProperty.call(row,n) && row[n] !== "") return row[n];
-  }
-  return "";
-}
-
-function getNumField(row,names){
-  const v = getField(row,names);
-  if(v === "" || v === null || v === undefined) return null;
-  const n = Number(v);
-  return isNaN(n) ? null : n;
-}
-
-uploadBtn.onclick = async () => {
-  const month = monthInput.value;
-  const file  = fileInput.files[0];
-  const plat  = platformSel.value;
-
-  if(!month){ alert("اختار الشهر يا خال 🙏"); return; }
-  if(!file){ alert("اختار الشيت الأول 🙏"); return; }
-
-  uploadBtn.disabled = true;
-  logBox.textContent = "";
-  log("🚀 بدء معالجة شيت المنصات للشهر: "+month);
-  log("📁 الملف: "+file.name+" | المنصة: "+plat);
-
-  try{
-    const rows = await readFileSmart(file);
-    log("📊 عدد الصفوف المقروءة: "+rows.length);
-    if(rows.length === 0){
-      log("⚠ الملف فاضي.");
-      uploadBtn.disabled = false;
-      return;
     }
 
-    const coll = collection(db,"analytics",month,"platforms_raw");
-    let ok=0,fail=0;
+    function toNumber(val){
+      if(val === null || val === undefined) return 0;
+      if(typeof val === "number") return val;
+      const cleaned = String(val).replace(/,/g,"").trim();
+      const n = parseFloat(cleaned);
+      return isNaN(n) ? 0 : n;
+    }
 
-    for(const r of rows){
+    function pickFirst(row, candidates){
+      for(const key of candidates){
+        if(key in row && row[key] !== "" && row[key] !== null && row[key] !== undefined){
+          return row[key];
+        }
+      }
+      return null;
+    }
+
+    // ===== Column Maps =====
+    const META_COLUMN_MAP = {
+      spend: [
+        "Amount spent (SAR)",
+        "المبلغ الذي تم إنفاقه (SAR)",
+        "Amount spent"
+      ],
+      impressions: [
+        "Impressions",
+        "مرات الظهور"
+      ],
+      reach: [
+        "Reach",
+        "الوصول"
+      ],
+      results: [
+        "Results",
+        "النتائج"
+      ],
+      costPerResult: [
+        "Cost per results",
+        "التكلفة لكل نتيجة"
+      ],
+      adSetName: [
+        "Ad set name",
+        "اسم المجموعة الإعلانية"
+      ],
+      campaignName: [
+        "Campaign name",
+        "اسم الحملة"
+      ],
+      adName: [
+        "Ad name",
+        "اسم الإعلان"
+      ]
+    };
+
+    const TIKTOK_COLUMN_MAP = {
+      adGroupName: [
+        "Ad group name"
+      ],
+      spend: [
+        "Cost",
+        "Total cost"
+      ],
+      impressions: [
+        "Impressions"
+      ],
+      clicks: [
+        "Clicks (destination)",
+        "Clicks"
+      ],
+      ctr: [
+        "CTR (destination)",
+        "Click-through rate"
+      ],
+      results: [
+        "Results"
+      ],
+      costPerResult: [
+        "Cost per result"
+      ],
+      resultRate: [
+        "Result rate"
+      ],
+      conversionsMmp: [
+        "Conversions [MMP]"
+      ],
+      conversionsSan: [
+        "Conversions [SAN]"
+      ],
+      costPerConversionMmp: [
+        "Cost per conversion [MMP]"
+      ],
+      costPerConversionSan: [
+        "Cost per conversion [SAN]"
+      ],
+      cvrMmp: [
+        "Conversion rate (CVR) [MMP]"
+      ],
+      cvrSan: [
+        "Conversion rate (CVR) [SAN]"
+      ],
+      deepFunnelResult: [
+        "Deep funnel result"
+      ],
+      costPerDeepFunnelResult: [
+        "Cost per deep funnel result"
+      ],
+      deepFunnelRate: [
+        "Deep funnel result rate"
+      ]
+    };
+
+    const SNAP_COLUMN_MAP = {
+      campaignId: [
+        "معرّف الحملة"
+      ],
+      campaignName: [
+        "اسم الحملة"
+      ],
+      adSetId: [
+        "رمز تعريف المجموعة الإعلانية"
+      ],
+      adSetName: [
+        "المجموعة الإعلانية الاسم"
+      ],
+      adSetStatus: [
+        "المجموعة الإعلانية الحالة النشطة"
+      ],
+      dailyBudget: [
+        "المجموعة الإعلانية الميزانية اليومية"
+      ],
+      lifetimeBudget: [
+        "المجموعة الإعلانية الميزانية طوال فترة الحملة"
+      ],
+      adSetGoal: [
+        "المجموعة الإعلانية الهدف"
+      ],
+      bid: [
+        "المجموعة الإعلانية عرض الأسعار"
+      ],
+      spend: [
+        "المبلغ الذي تم إنفاقه"
+      ],
+      results: [
+        "النتيجة"
+      ],
+      resultType: [
+        "نوع النتيجة"
+      ],
+      costPerResult: [
+        "التكلفة لكل نتيجة"
+      ],
+      costPerResultType: [
+        "التكلفة لكل نوع نتيجة"
+      ],
+      impressions: [
+        "مرات الظهور المدفوعة"
+      ],
+      eCPM: [
+        "التكلفة الفعلية المدفوعة لكل ألف ظهور (eCPM)"
+      ],
+      clicks: [
+        "النقرات"
+      ],
+      eCPC: [
+        "التكلفة المحسنة لكل نقرة (eCPC)"
+      ],
+      installs: [
+        "عمليات تثبيت التطبيق"
+      ],
+      costPerInstall: [
+        "التكلفة لكل عملية تثبيت"
+      ],
+      installRate: [
+        "معدل تثبيت التطبيق"
+      ],
+      adId: [
+        "رمز تعريف الإعلان"
+      ],
+      adName: [
+        "اسم الإعلان"
+      ],
+      adStatus: [
+        "الإعلان الحالة النشطة"
+      ],
+      adType: [
+        "نوع الإعلان"
+      ]
+    };
+
+    function buildNormForMeta(row, sheetType, monthKey){
+      const spend       = toNumber(pickFirst(row, META_COLUMN_MAP.spend));
+      const impressions = toNumber(pickFirst(row, META_COLUMN_MAP.impressions));
+      const reach       = toNumber(pickFirst(row, META_COLUMN_MAP.reach));
+      const results     = toNumber(pickFirst(row, META_COLUMN_MAP.results));
+      const costPerResult = toNumber(pickFirst(row, META_COLUMN_MAP.costPerResult));
+      const adSetName   = pickFirst(row, META_COLUMN_MAP.adSetName);
+      const campaignName= pickFirst(row, META_COLUMN_MAP.campaignName);
+      const adName      = pickFirst(row, META_COLUMN_MAP.adName);
+
+      const ctr         = impressions > 0 ? (results > 0 ? (results / impressions) * 100 : null) : null;
+      const cpr         = results > 0 ? spend / results : null;
+
+      return {
+        platform: "meta",
+        sheetType,
+        monthKey,
+        campaignName: campaignName || null,
+        adSetName: adSetName || null,
+        adName: adName || null,
+        spend,
+        impressions,
+        reach,
+        results,
+        costPerResult: costPerResult || cpr,
+        ctr,
+        cpc: null // ممكن نزود لو عندنا Clicks في شيتات أخرى
+      };
+    }
+
+    function buildNormForTikTok(row, sheetType, monthKey){
+      const spend       = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.spend));
+      const impressions = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.impressions));
+      const clicks      = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.clicks));
+      const ctrRaw      = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.ctr));
+      const results     = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.results));
+      const costPerRes  = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.costPerResult));
+      const adGroupName = pickFirst(row, TIKTOK_COLUMN_MAP.adGroupName);
+
+      const ctr = ctrRaw || (impressions > 0 && clicks > 0 ? (clicks / impressions) * 100 : null);
+      const cpc = clicks > 0 ? spend / clicks : null;
+      const cpr = results > 0 ? spend / results : null;
+
+      const convMmp = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.conversionsMmp));
+      const convSan = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.conversionsSan));
+      const cvrMmp  = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.cvrMmp));
+      const cvrSan  = toNumber(pickFirst(row, TIKTOK_COLUMN_MAP.cvrSan));
+
+      return {
+        platform: "tiktok",
+        sheetType,
+        monthKey,
+        adGroupName: adGroupName || null,
+        campaignName: null,
+        adName: null,
+        spend,
+        impressions,
+        clicks,
+        ctr,
+        results,
+        costPerResult: costPerRes || cpr,
+        cpc,
+        conversionsMmp: convMmp || null,
+        conversionsSan: convSan || null,
+        cvrMmp: cvrMmp || null,
+        cvrSan: cvrSan || null
+      };
+    }
+
+    function buildNormForSnap(row, sheetType, monthKey){
+      const spend       = toNumber(pickFirst(row, SNAP_COLUMN_MAP.spend));
+      const impressions = toNumber(pickFirst(row, SNAP_COLUMN_MAP.impressions));
+      const clicks      = toNumber(pickFirst(row, SNAP_COLUMN_MAP.clicks));
+      const results     = toNumber(pickFirst(row, SNAP_COLUMN_MAP.results));
+      const costPerRes  = toNumber(pickFirst(row, SNAP_COLUMN_MAP.costPerResult));
+      const campaignId  = pickFirst(row, SNAP_COLUMN_MAP.campaignId);
+      const campaignName= pickFirst(row, SNAP_COLUMN_MAP.campaignName);
+      const adSetName   = pickFirst(row, SNAP_COLUMN_MAP.adSetName);
+      const adName      = pickFirst(row, SNAP_COLUMN_MAP.adName);
+
+      const ctr = impressions > 0 && clicks > 0 ? (clicks / impressions) * 100 : null;
+      const cpc = clicks > 0 ? spend / clicks : null;
+      const cpr = results > 0 ? spend / results : null;
+
+      return {
+        platform: "snap",
+        sheetType,
+        monthKey,
+        campaignId: campaignId || null,
+        campaignName: campaignName || null,
+        adSetName: adSetName || null,
+        adName: adName || null,
+        spend,
+        impressions,
+        clicks,
+        results,
+        costPerResult: costPerRes || cpr,
+        ctr,
+        cpc
+      };
+    }
+
+    function buildNormRow(row, platform, sheetType, monthKey){
+      if(platform === "meta"){
+        return buildNormForMeta(row, sheetType, monthKey);
+      }
+      if(platform === "tiktok"){
+        return buildNormForTikTok(row, sheetType, monthKey);
+      }
+      if(platform === "snap"){
+        return buildNormForSnap(row, sheetType, monthKey);
+      }
+      return { platform, sheetType, monthKey };
+    }
+
+    function getCollectionName(platform){
+      if(platform === "meta")   return "meta_raw";
+      if(platform === "tiktok") return "tiktok_raw";
+      if(platform === "snap")   return "snap_raw";
+      return "other_raw";
+    }
+
+    function updateHeaderPreview(headers){
+      headerPreviewTbl.innerHTML = "";
+      if(!headers || !headers.length){
+        headerPreviewTbl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;">لا توجد أعمدة في الملف.</td></tr>';
+        return;
+      }
+      const row = document.createElement("tr");
+      for(let i=0;i<6;i++){
+        const td = document.createElement("td");
+        td.textContent = headers[i] || "-";
+        row.appendChild(td);
+      }
+      headerPreviewTbl.appendChild(row);
+    }
+
+    function detectFileType(file){
+      const name = file.name.toLowerCase();
+      if(name.endsWith(".csv")) return "csv";
+      if(name.endsWith(".xlsx") || name.endsWith(".xls")) return "excel";
+      return "unknown";
+    }
+
+    function parseFile(file){
+      return new Promise((resolve, reject)=>{
+        const type = detectFileType(file);
+        if(type === "csv"){
+          Papa.parse(file,{
+            header:true,
+            skipEmptyLines:true,
+            complete:(res)=>{
+              resolve(res.data);
+            },
+            error:(err)=>reject(err)
+          });
+        }else if(type === "excel"){
+          const reader = new FileReader();
+          reader.onload = (e)=>{
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data,{type:"array"});
+            const sheetName = workbook.SheetNames[0];
+            const ws = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(ws,{defval:""});
+            resolve(json);
+          };
+          reader.onerror = (e)=>reject(e);
+          reader.readAsArrayBuffer(file);
+        }else{
+          reject(new Error("نوع الملف غير مدعوم. استخدم CSV أو Excel."));
+        }
+      });
+    }
+
+    async function handleTestParse(){
+      const file = fileInput.files[0];
+      if(!file){
+        alert("اختار ملف الأول يا خال.");
+        return;
+      }
+      logArea.innerHTML = "";
+      setStatus("جاري تجربة قراءة الملف…","ok");
+      log("⏳ Test Parse: جاري قراءة أول 5 صفوف…","warn");
+
       try{
-        const campaign = getField(r,["Campaign Name","Campaign name","Campaign","الحملة"]);
-        const adset    = getField(r,["Ad set name","Ad Set Name","Ad Squad","مجموعة إعلانية"]);
-        const ad       = getField(r,["Ad Name","Ad name","Ad","الإعلان"]);
-
-        const spend  = getNumField(r,["Amount spent (SAR)","Amount spent","Spend","الإنفاق"]);
-        const impr   = getNumField(r,["Impressions","الانطباعات","مرات الظهور"]);
-        const clicks = getNumField(r,["Clicks","Link clicks","Swipe Ups","Swipe ups","النقرات"]);
-        const ctr    = getNumField(r,["CTR (%)","CTR","نسبة النقر"]);
-        const cpc    = getNumField(r,["CPC (cost per link click)","CPC","Cost per click (all)"]);
-        const cpm    = getNumField(r,["CPM (cost per 1,000 impressions)","CPM","eCPM"]);
-        const leads  = getNumField(r,["Leads","Results","النتائج","Conversions"]);
-        const cpl    = getNumField(r,["Cost per result","Cost per results","Cost per Lead","CPL","eCPL"]);
-        let resultType = getField(r,["Result Type","Result indicator","هدف النتيجة"]);
-
-        const payload = {
-          Platform: plat,
-          CampaignName: campaign || "(بدون اسم حملة)",
-          AdSetName: adset || "",
-          AdName: ad || "",
-          Spend: spend ?? 0,
-          Impressions: impr ?? 0,
-          Clicks: clicks ?? 0,
-          CTR: ctr,
-          CPC: cpc,
-          CPM: cpm,
-          Leads: leads ?? 0,
-          CostPerLead: cpl,
-          ResultType: resultType || "",
-          monthKey: month,
-          source: "platforms-upload",
-          createdAt: serverTimestamp()
-        };
-
-        await addDoc(coll,payload);
-        ok++;
-      }catch(e){
-        fail++;
-        log("❌ خطأ في صف: "+e.message);
+        const rows = await parseFile(file);
+        if(!rows.length){
+          setStatus("الملف لا يحتوي على صفوف.","bad");
+          log("⚠ الملف فاضي أو مفيهوش داتا.","warn");
+          return;
+        }
+        const headers = Object.keys(rows[0]);
+        updateHeaderPreview(headers);
+        log(`✅ تم قراءة ${rows.length} صف. أول 5 صفوف للمعاينة:`,`ok");
+        rows.slice(0,5).forEach((r,idx)=>{
+          log(`#${idx+1}: `+JSON.stringify(r), "ok");
+        });
+        setStatus("تمت تجربة القراءة بنجاح. لو كل شيء مظبوط، دوس رفع الشيت.","ok");
+      }catch(err){
+        console.error(err);
+        log("❌ Error أثناء القراءة: "+err.message,"err");
+        setStatus("فشل في قراءة الملف. تأكد من الفورمات.","bad");
       }
     }
 
-    log("✅ تم الرفع.");
-    log("✔ صفوف ناجحة: "+ok+" | ❌ صفوف فاشلة: "+fail);
+    async function handleUpload(){
+      const file     = fileInput.files[0];
+      const platform = platformSelect.value;
+      const sheetType= sheetTypeSelect.value;
+      const monthVal = monthInput.value;
 
-  }catch(err){
-    console.error(err);
-    log("❌ خطأ عام: "+err.message);
-  }finally{
-    uploadBtn.disabled = false;
-  }
-};
-</script>
+      if(!file){
+        alert("اختار ملف الأول يا خال.");
+        return;
+      }
+      if(!monthVal){
+        alert("اختار شهر التقرير يا خال.");
+        return;
+      }
+
+      logArea.innerHTML = "";
+      setStatus("جاري قراءة الملف وتجهيزه للرفع…","ok");
+      uploadBtn.disabled   = true;
+      testParseBtn.disabled= true;
+
+      try{
+        const rows = await parseFile(file);
+        if(!rows.length){
+          setStatus("الملف لا يحتوي على صفوف.","bad");
+          log("⚠ الملف فاضي أو مفيهوش داتا.","warn");
+          uploadBtn.disabled   = false;
+          testParseBtn.disabled= false;
+          return;
+        }
+
+        const headers = Object.keys(rows[0]);
+        updateHeaderPreview(headers);
+        log(`📄 عدد الصفوف المقروءة من الملف: ${rows.length}`,"ok");
+
+        const monthKey = monthVal;
+        const colName  = getCollectionName(platform);
+
+        let successCount = 0;
+        let failCount    = 0;
+
+        for(let i=0;i<rows.length;i++){
+          const rawRow = rows[i];
+          // تخطي الصفوف الفارغة تماماً
+          const values = Object.values(rawRow || {});
+          const allEmpty = values.every(v => v === null || v === undefined || String(v).trim() === "");
+          if(allEmpty){
+            continue;
+          }
+
+          const norm = buildNormRow(rawRow, platform, sheetType, monthKey);
+          const docData = {
+            raw: rawRow,
+            norm,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          try{
+            await db.collection("analytics")
+              .doc(monthKey)
+              .collection(colName)
+              .add(docData);
+            successCount++;
+            if(successCount <= 3){
+              log(`✅ صف ${i+1} تم حفظه بنجاح.`, "ok");
+            }
+          }catch(err){
+            failCount++;
+            console.error(err);
+            if(failCount <= 3){
+              log(`❌ خطأ في حفظ الصف ${i+1}: ${err.message}`,"err");
+            }
+          }
+        }
+
+        log(`🎯 تم الإنتهاء من الرفع: ناجح = ${successCount} | فاشل = ${failCount}`,"ok");
+        if(successCount > 0 && failCount === 0){
+          setStatus(`تم رفع ${successCount} صف بنجاح إلى analytics/${monthKey}/${colName}.`,"ok");
+        }else if(successCount > 0){
+          setStatus(`تم رفع ${successCount} صف، مع ${failCount} خطأ. راجع الـ Log.`,"bad");
+        }else{
+          setStatus("لم يتم حفظ أي صف. راجع فورمات الملف والـ Log.","bad");
+        }
+
+      }catch(err){
+        console.error(err);
+        log("❌ Error عام أثناء المعالجة: "+err.message,"err");
+        setStatus("فشل في قراءة أو حفظ الملف. راجع الـ Log.","bad");
+      }finally{
+        uploadBtn.disabled   = false;
+        testParseBtn.disabled= false;
+      }
+    }
+
+    uploadBtn.addEventListener("click", handleUpload);
+    testParseBtn.addEventListener("click", handleTestParse);
+
+    (function presetMonth(){
+      const now = new Date();
+      const y   = now.getFullYear();
+      const m   = String(now.getMonth()+1).padStart(2,"0");
+      monthInput.value = `${y}-${m}`;
+    })();
+  </script>
 </body>
 </html>

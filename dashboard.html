@@ -55,31 +55,56 @@
     max-height:100dvh !important;
     border-radius:0 !important;
     border:0 !important;
-    display:grid !important;
-    grid-template-columns:1fr !important;
-    grid-template-rows:1fr !important;
-    overflow:hidden !important;
+    display:flex !important;
+    flex-direction:column !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch !important;
   }
   .dashboard-chat-dialog.inbox-style .inbox-chat-panel{
     order:1 !important;
-    height:100dvh !important;
+    height:auto !important;
     min-height:0 !important;
-    max-height:100dvh !important;
+    max-height:none !important;
     display:grid !important;
-    grid-template-rows:auto minmax(220px,1fr) auto !important;
-    overflow:hidden !important;
+    grid-template-rows:auto minmax(210px,38dvh) auto !important;
+    overflow:visible !important;
   }
   .dashboard-chat-dialog.inbox-style .inbox-customer-panel{
-    display:none !important;
+    order:2 !important;
+    display:flex !important;
+    height:auto !important;
+    max-height:none !important;
+    min-height:auto !important;
+    overflow:visible !important;
+    border-top:1px solid #ead4c8 !important;
+    border-left:0 !important;
+    background:#fff !important;
+  }
+  .dashboard-chat-dialog.inbox-style .customer-panel-scroll{
+    overflow:visible !important;
+    padding:12px !important;
+  }
+  .dashboard-chat-dialog.inbox-style .customer-form-card{
+    margin-bottom:0 !important;
+  }
+  .dashboard-chat-dialog.inbox-style .customer-form-card .two{
+    grid-template-columns:1fr !important;
+  }
+  .dashboard-chat-dialog.inbox-style .customer-save-bar{
+    position:sticky !important;
+    bottom:0 !important;
+    z-index:5 !important;
   }
   .dashboard-chat-dialog.inbox-style .inbox-chat-header{
     min-height:62px !important;
     height:auto !important;
     padding:10px 12px !important;
     gap:8px !important;
-    position:relative !important;
-    top:auto !important;
-    z-index:3 !important;
+    position:sticky !important;
+    top:0 !important;
+    z-index:6 !important;
+    background:#fff !important;
   }
   .dashboard-chat-dialog.inbox-style .chat-title-line{
     display:flex !important;
@@ -170,6 +195,62 @@
   }
   .dashboard-chat-dialog.inbox-style .composer-hint{
     display:none !important;
+  }
+}
+
+
+/* ===== Mobile dashboard board stability fix ===== */
+@media (max-width: 900px){
+  body:has(#dashboardBoard) .page-head,
+  body:has(#dashboardBoard) .board-head{
+    position:relative !important;
+    top:auto !important;
+    z-index:auto !important;
+    transform:none !important;
+  }
+  body:has(#dashboardBoard) .management-main{
+    overflow:visible !important;
+  }
+  body:has(#dashboardBoard) .dashboard-section-cards{
+    position:relative !important;
+    z-index:1 !important;
+    margin-top:14px !important;
+  }
+  body:has(#dashboardBoard) .dashboard-board{
+    position:relative !important;
+    z-index:1 !important;
+    scroll-margin-top:76px !important;
+    margin-top:16px !important;
+    overflow:visible !important;
+  }
+  body:has(#dashboardBoard) .board-head{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    align-items:stretch !important;
+    background:#fff !important;
+    border:1px solid var(--line) !important;
+    border-radius:18px !important;
+    padding:12px !important;
+    margin:0 0 12px !important;
+    box-shadow:0 8px 20px rgba(75,32,27,.06) !important;
+  }
+  body:has(#dashboardBoard) #selectedSectionTitle{
+    margin:0 !important;
+    font-size:22px !important;
+    line-height:1.35 !important;
+  }
+  body:has(#dashboardBoard) .dashboard-lead-search,
+  body:has(#dashboardBoard) #backToSectionsBtn{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    height:46px !important;
+    border-radius:16px !important;
+  }
+  body:has(#dashboardBoard) .dashboard-status-grid{
+    position:relative !important;
+    z-index:1 !important;
   }
 }
 
